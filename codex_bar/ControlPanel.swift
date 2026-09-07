@@ -4,7 +4,6 @@ import SwiftUI
 
 @MainActor
 final class AppController: NSObject, NSApplicationDelegate, ObservableObject, NSWindowDelegate {
-    static let shared = AppController()
     let store = UsageStore()
     @Published var menuEnabled = false
     @Published var settingsSelected = false
@@ -13,19 +12,37 @@ final class AppController: NSObject, NSApplicationDelegate, ObservableObject, NS
     private let popover = NSPopover()
     private var usageObservation: AnyCancellable?
 
-    private func installMenu() {
-        guard statusItem == nil else { return }
+    @discardableResult
+    private func installMenu() -> Bool {
+        if let statusItem { return statusItem.button != nil }
+
         let item = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
-        item.button?.image = NSImage(systemSymbolName: "gauge.with.dots.needle.67percent", accessibilityDescription: "Codex 额度")
-        item.button?.target = self
-        item.button?.action = #selector(togglePopover)
+        guard let button = item.button else {
+            NSStatusBar.system.removeStatusItem(item)
+            return false
+        }
+        button.image = NSImage(
+            systemSymbolName: "gauge.with.dots.needle.67percent",
+            accessibilityDescription: "Codex 额度"
+        )
+        button.imagePosition = .imageLeading
+        button.target = self
+        button.action = #selector(togglePopover)
         statusItem = item
         popover.behavior = .transient
-        popover.contentViewController = NSHostingController(rootView: ContentView(store: store, openPanel: { [weak self] in self?.showPanel() }, openSettings: { [weak self] in self?.showPanel(settings: true) }))
+        popover.contentSize = NSSize(width: 320, height: 360)
+        popover.contentViewController = NSHostingController(
+            rootView: ContentView(
+                store: store,
+                openPanel: { [weak self] in self?.showPanel() },
+                openSettings: { [weak self] in self?.showPanel(settings: true) }
+            )
+        )
         usageObservation = store.$usage.sink { [weak self] usage in
             let percent = usage?.fiveHour.usedPercent ?? usage?.weekly.usedPercent
             self?.statusItem?.button?.title = percent.map { " \(Int($0.rounded()))%" } ?? " Codex"
         }
+        return true
     }
 
     @objc private func togglePopover() {
@@ -35,13 +52,13 @@ final class AppController: NSObject, NSApplicationDelegate, ObservableObject, NS
     }
 
     func applicationDidFinishLaunching(_ notification: Notification) {
-        Self.shared.showPanel()
-        Task { await Self.shared.store.loadIfNeeded() }
-        Self.shared.store.scheduleRefresh()
+        showPanel()
+        Task { await store.loadIfNeeded() }
+        store.scheduleRefresh()
     }
 
     func applicationShouldHandleReopen(_ sender: NSApplication, hasVisibleWindows flag: Bool) -> Bool {
-        Self.shared.showPanel()
+        showPanel()
         return true
     }
 
@@ -57,23 +74,23 @@ final class AppController: NSObject, NSApplicationDelegate, ObservableObject, NS
             window.center()
             panel = window
         }
-        NSApp.setActivationPolicy(.regular)
         NSApp.activate(ignoringOtherApps: true)
         panel?.makeKeyAndOrderFront(nil)
     }
 
     func startMenu() {
-        installMenu()
+        guard installMenu() else { return }
         menuEnabled = true
-        panel?.orderOut(nil)
-        NSApp.setActivationPolicy(.accessory)
+        // Let AppKit place the status item before hiding the only window.
+        DispatchQueue.main.async { [weak self] in
+            self?.panel?.orderOut(nil)
+        }
     }
 
     func windowWillClose(_ notification: Notification) {
-        installMenu()
+        guard installMenu() else { return }
         // Closing the setup window always leaves a way back to settings.
         menuEnabled = true
-        NSApp.setActivationPolicy(.accessory)
     }
 }
 
