@@ -1,9 +1,10 @@
 import AppKit
 import Combine
 import SwiftUI
+import UserNotifications
 
 @MainActor
-final class AppController: NSObject, NSApplicationDelegate, ObservableObject, NSWindowDelegate {
+final class AppController: NSObject, NSApplicationDelegate, ObservableObject, NSWindowDelegate, UNUserNotificationCenterDelegate {
     let store = UsageStore()
     @Published var menuEnabled = false
     @Published var settingsSelected = false
@@ -52,6 +53,7 @@ final class AppController: NSObject, NSApplicationDelegate, ObservableObject, NS
     }
 
     func applicationDidFinishLaunching(_ notification: Notification) {
+        UNUserNotificationCenter.current().delegate = self
         showPanel()
         Task { await store.loadIfNeeded() }
         store.scheduleRefresh()
@@ -92,6 +94,23 @@ final class AppController: NSObject, NSApplicationDelegate, ObservableObject, NS
         // Closing the setup window always leaves a way back to settings.
         menuEnabled = true
     }
+
+    func userNotificationCenter(
+        _ center: UNUserNotificationCenter,
+        willPresent notification: UNNotification,
+        withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void
+    ) {
+        completionHandler([.banner, .sound])
+    }
+
+    func userNotificationCenter(
+        _ center: UNUserNotificationCenter,
+        didReceive response: UNNotificationResponse,
+        withCompletionHandler completionHandler: @escaping () -> Void
+    ) {
+        showPanel()
+        completionHandler()
+    }
 }
 
 struct ControlPanel: View {
@@ -115,7 +134,9 @@ struct ControlPanel: View {
             }.pickerStyle(.segmented)
 
             if controller.settingsSelected {
-                settings
+                ScrollView {
+                    settings.padding(.trailing, 6)
+                }
             } else {
                 VStack(alignment: .leading, spacing: 16) {
                     Label(store.isLoading ? "正在连接…" : (store.errorMessage == nil && store.usage != nil ? "已连接 Codex" : "等待连接"), systemImage: store.usage != nil && store.errorMessage == nil ? "checkmark.circle.fill" : "network")
@@ -188,6 +209,18 @@ struct ControlPanel: View {
                 Text("每 5 分钟").tag(5)
                 Text("每 15 分钟").tag(15)
                 Text("每 30 分钟").tag(30)
+            }
+            Divider()
+            Text("额度重置提醒").font(.headline)
+            Toggle("5 小时额度重置", isOn: $store.notifyFiveHourReset)
+            Toggle("每周额度重置", isOn: $store.notifyWeeklyReset)
+            Text("自动刷新检测到剩余额度明显上涨时发送系统通知。首次启用需要允许通知权限。")
+                .font(.caption).foregroundStyle(.secondary)
+            HStack {
+                Text("系统通知：\(store.notificationAuthorization)")
+                    .font(.caption).foregroundStyle(.secondary)
+                Spacer()
+                Button("发送测试提醒") { Task { await store.sendTestNotification() } }
             }
             Button(store.isLoading ? "正在测试…" : "测试连接") { Task { await store.refresh() } }
                 .disabled(store.isLoading)

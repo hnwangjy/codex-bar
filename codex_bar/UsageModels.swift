@@ -11,6 +11,25 @@ struct UsageWindow: Sendable {
     }
 }
 
+enum UsageResetDetector {
+    static let minimumJump = 20.0
+
+    static func didReset(previous: UsageWindow, current: UsageWindow) -> Bool {
+        guard let oldRemaining = previous.remainingPercent,
+              let newRemaining = current.remainingPercent,
+              newRemaining > oldRemaining else { return false }
+
+        let resetTimeAdvanced: Bool
+        if let oldReset = previous.resetAt, let newReset = current.resetAt {
+            resetTimeAdvanced = newReset.timeIntervalSince(oldReset) > 60
+        } else {
+            resetTimeAdvanced = false
+        }
+
+        return resetTimeAdvanced || newRemaining - oldRemaining >= minimumJump
+    }
+}
+
 struct CodexUsage: Sendable {
     let fiveHour: UsageWindow
     let weekly: UsageWindow
