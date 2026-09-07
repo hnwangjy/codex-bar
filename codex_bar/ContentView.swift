@@ -100,14 +100,14 @@ private struct UsageRow: View {
             HStack {
                 Text(title).font(.subheadline.weight(.medium))
                 Spacer()
-                if let percent = window.usedPercent {
-                    Text("已用 \(Int(percent.rounded()))%")
+                if let percent = window.remainingPercent {
+                    Text("剩余 \(Int(percent.rounded()))%")
                         .font(.subheadline.monospacedDigit().weight(.semibold))
                 } else {
                     Text("未提供").font(.caption).foregroundStyle(.secondary)
                 }
             }
-            ProgressView(value: window.usedPercent ?? 0, total: 100)
+            ProgressView(value: window.remainingPercent ?? 0, total: 100)
                 .tint(tintColor)
             if let resetAt = window.resetAt {
                 Text("重置时间：\(resetAt.formatted(date: .abbreviated, time: .shortened))")
@@ -120,9 +120,9 @@ private struct UsageRow: View {
     }
 
     private var tintColor: Color {
-        switch window.usedPercent ?? 0 {
-        case 90...: return .red
-        case 75...: return .orange
+        switch window.remainingPercent ?? 100 {
+        case ...10: return .red
+        case ...25: return .orange
         default: return .accentColor
         }
     }

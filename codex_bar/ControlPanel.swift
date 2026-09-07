@@ -39,7 +39,7 @@ final class AppController: NSObject, NSApplicationDelegate, ObservableObject, NS
             )
         )
         usageObservation = store.$usage.sink { [weak self] usage in
-            let percent = usage?.fiveHour.usedPercent ?? usage?.weekly.usedPercent
+            let percent = usage?.fiveHour.remainingPercent ?? usage?.weekly.remainingPercent
             self?.statusItem?.button?.title = percent.map { " \(Int($0.rounded()))%" } ?? " Codex"
         }
         return true
@@ -121,8 +121,8 @@ struct ControlPanel: View {
                     Label(store.isLoading ? "正在连接…" : (store.errorMessage == nil && store.usage != nil ? "已连接 Codex" : "等待连接"), systemImage: store.usage != nil && store.errorMessage == nil ? "checkmark.circle.fill" : "network")
                         .foregroundStyle(store.usage != nil && store.errorMessage == nil ? Color.green : Color.secondary)
                     if let usage = store.usage {
-                        quota("5 小时额度", value: usage.fiveHour.usedPercent)
-                        quota("每周额度", value: usage.weekly.usedPercent)
+                        quota("5 小时额度", value: usage.fiveHour.remainingPercent)
+                        quota("每周额度", value: usage.weekly.remainingPercent)
                     }
                     status
                     Button("重新连接") { Task { await store.refresh() } }
@@ -149,7 +149,7 @@ struct ControlPanel: View {
             HStack {
                 Text(title)
                 Spacer()
-                Text(value.map { "已用 \(Int($0.rounded()))%" } ?? "未提供").monospacedDigit()
+                Text(value.map { "剩余 \(Int($0.rounded()))%" } ?? "未提供").monospacedDigit()
             }
             if let value { ProgressView(value: min(100, max(0, value)), total: 100).tint(.mint) }
         }

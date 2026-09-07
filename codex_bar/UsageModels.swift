@@ -5,6 +5,10 @@ struct UsageWindow: Sendable {
     let resetAt: Date?
 
     static let unavailable = UsageWindow(usedPercent: nil, resetAt: nil)
+
+    var remainingPercent: Double? {
+        usedPercent.map { min(100, max(0, 100 - $0)) }
+    }
 }
 
 struct CodexUsage: Sendable {

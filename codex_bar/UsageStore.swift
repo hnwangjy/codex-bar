@@ -31,7 +31,7 @@ final class UsageStore: ObservableObject {
     }
 
     var menuBarTitle: String {
-        guard let percent = usage?.fiveHour.usedPercent ?? usage?.weekly.usedPercent else { return "Codex" }
+        guard let percent = usage?.fiveHour.remainingPercent ?? usage?.weekly.remainingPercent else { return "Codex" }
         return "\(Int(percent.rounded()))%"
     }
 
