@@ -18,10 +18,10 @@ final class ResetNotificationService {
         }
     }
 
-    func send(period: String, remainingPercent: Double) async {
+    func send(period: String, remainingPercent: Double) async -> Bool {
         let settings = await center.notificationSettings()
         guard settings.authorizationStatus == .authorized ||
-              settings.authorizationStatus == .provisional else { return }
+              settings.authorizationStatus == .provisional else { return false }
 
         let content = UNMutableNotificationContent()
         content.title = "\(period)额度已重置"
@@ -33,11 +33,16 @@ final class ResetNotificationService {
             content: content,
             trigger: nil
         )
-        try? await center.add(request)
+        do {
+            try await center.add(request)
+            return true
+        } catch {
+            return false
+        }
     }
 
     func sendTest() async {
         await requestAuthorization()
-        await send(period: "测试", remainingPercent: 100)
+        _ = await send(period: "测试", remainingPercent: 100)
     }
 }

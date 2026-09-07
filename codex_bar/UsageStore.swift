@@ -36,6 +36,14 @@ final class UsageStore: ObservableObject {
         }
     }
     private var timer: Timer?
+    private var lastFiveHourNotificationAt: Date? {
+        get { UserDefaults.standard.object(forKey: "lastFiveHourResetNotificationAt") as? Date }
+        set { UserDefaults.standard.set(newValue, forKey: "lastFiveHourResetNotificationAt") }
+    }
+    private var lastWeeklyNotificationAt: Date? {
+        get { UserDefaults.standard.object(forKey: "lastWeeklyResetNotificationAt") as? Date }
+        set { UserDefaults.standard.set(newValue, forKey: "lastWeeklyResetNotificationAt") }
+    }
 
     func scheduleRefresh() {
         timer?.invalidate()
@@ -90,16 +98,33 @@ final class UsageStore: ObservableObject {
     }
 
     private func notifyForResets(previous: CodexUsage, current: CodexUsage) async {
+        let now = Date()
         if notifyFiveHourReset,
-           UsageResetDetector.didReset(previous: previous.fiveHour, current: current.fiveHour),
+           UsageResetNotificationPolicy.shouldNotify(
+                previous: previous.fiveHour,
+                current: current.fiveHour,
+                period: .fiveHour,
+                lastNotifiedAt: lastFiveHourNotificationAt,
+                now: now
+           ),
            let remaining = current.fiveHour.remainingPercent {
-            await notifications.send(period: "5 小时", remainingPercent: remaining)
+            if await notifications.send(period: "5 小时", remainingPercent: remaining) {
+                lastFiveHourNotificationAt = now
+            }
         }
 
         if notifyWeeklyReset,
-           UsageResetDetector.didReset(previous: previous.weekly, current: current.weekly),
+           UsageResetNotificationPolicy.shouldNotify(
+                previous: previous.weekly,
+                current: current.weekly,
+                period: .weekly,
+                lastNotifiedAt: lastWeeklyNotificationAt,
+                now: now
+           ),
            let remaining = current.weekly.remainingPercent {
-            await notifications.send(period: "每周", remainingPercent: remaining)
+            if await notifications.send(period: "每周", remainingPercent: remaining) {
+                lastWeeklyNotificationAt = now
+            }
         }
     }
 

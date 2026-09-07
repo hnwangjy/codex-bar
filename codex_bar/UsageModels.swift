@@ -14,19 +14,47 @@ struct UsageWindow: Sendable {
 enum UsageResetDetector {
     static let minimumJump = 20.0
 
-    static func didReset(previous: UsageWindow, current: UsageWindow) -> Bool {
+    static func didReset(previous: UsageWindow, current: UsageWindow, at now: Date = Date()) -> Bool {
         guard let oldRemaining = previous.remainingPercent,
               let newRemaining = current.remainingPercent,
               newRemaining > oldRemaining else { return false }
 
-        let resetTimeAdvanced: Bool
+        let crossedResetBoundary: Bool
         if let oldReset = previous.resetAt, let newReset = current.resetAt {
-            resetTimeAdvanced = newReset.timeIntervalSince(oldReset) > 60
+            crossedResetBoundary = oldReset <= now && newReset.timeIntervalSince(oldReset) > 60
         } else {
-            resetTimeAdvanced = false
+            crossedResetBoundary = false
         }
 
-        return resetTimeAdvanced || newRemaining - oldRemaining >= minimumJump
+        return crossedResetBoundary || newRemaining - oldRemaining >= minimumJump
+    }
+}
+
+enum UsageResetPeriod {
+    case fiveHour
+    case weekly
+
+    var notificationCooldown: TimeInterval {
+        switch self {
+        case .fiveHour: return 4 * 60 * 60
+        case .weekly: return 6 * 24 * 60 * 60
+        }
+    }
+}
+
+enum UsageResetNotificationPolicy {
+    static func shouldNotify(
+        previous: UsageWindow,
+        current: UsageWindow,
+        period: UsageResetPeriod,
+        lastNotifiedAt: Date?,
+        now: Date = Date()
+    ) -> Bool {
+        guard UsageResetDetector.didReset(previous: previous, current: current, at: now) else {
+            return false
+        }
+        guard let lastNotifiedAt else { return true }
+        return now.timeIntervalSince(lastNotifiedAt) >= period.notificationCooldown
     }
 }
 
