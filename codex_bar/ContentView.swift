@@ -57,6 +57,8 @@ struct ContentView: View {
         }
         .padding(18)
         .frame(width: 320)
+        .background(Color(nsColor: .windowBackgroundColor).opacity(0.88))
+        .environment(\.controlActiveState, .active)
         .task { await store.loadIfNeeded() }
     }
 
@@ -116,7 +118,14 @@ private struct UsageRow: View {
             }
         }
         .padding(12)
-        .background(.quaternary.opacity(0.45), in: RoundedRectangle(cornerRadius: 12))
+        .background(
+            Color(nsColor: .controlBackgroundColor).opacity(0.72),
+            in: RoundedRectangle(cornerRadius: 12)
+        )
+        .overlay {
+            RoundedRectangle(cornerRadius: 12)
+                .stroke(Color(nsColor: .separatorColor).opacity(0.28), lineWidth: 0.5)
+        }
     }
 
     private var tintColor: Color {

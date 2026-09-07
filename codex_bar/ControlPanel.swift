@@ -49,7 +49,10 @@ final class AppController: NSObject, NSApplicationDelegate, ObservableObject, NS
     @objc private func togglePopover() {
         guard let button = statusItem?.button else { return }
         if popover.isShown { popover.performClose(nil) }
-        else { popover.show(relativeTo: button.bounds, of: button, preferredEdge: .minY) }
+        else {
+            NSApp.activate(ignoringOtherApps: true)
+            popover.show(relativeTo: button.bounds, of: button, preferredEdge: .minY)
+        }
     }
 
     func applicationDidFinishLaunching(_ notification: Notification) {
