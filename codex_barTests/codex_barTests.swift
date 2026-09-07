@@ -64,4 +64,29 @@ struct codex_barTests {
         ))
     }
 
+    @Test func weeklyResetHasNoTimeCooldown() {
+        let now = Date(timeIntervalSince1970: 20_000)
+        let previous = UsageWindow(usedPercent: 80, resetAt: nil)
+        let current = UsageWindow(usedPercent: 20, resetAt: nil)
+        #expect(UsageResetNotificationPolicy.shouldNotify(
+            previous: previous,
+            current: current,
+            period: .weekly,
+            lastNotifiedAt: now.addingTimeInterval(-60),
+            now: now
+        ))
+    }
+
+    @Test func disarmedWeeklyResetSuppressesContinuousRise() {
+        let previous = UsageWindow(usedPercent: 60, resetAt: nil)
+        let current = UsageWindow(usedPercent: 20, resetAt: nil)
+        #expect(!UsageResetNotificationPolicy.shouldNotify(
+            previous: previous,
+            current: current,
+            period: .weekly,
+            isArmed: false,
+            lastNotifiedAt: nil
+        ))
+    }
+
 }

@@ -214,7 +214,7 @@ struct ControlPanel: View {
             Text("额度重置提醒").font(.headline)
             Toggle("5 小时额度重置", isOn: $store.notifyFiveHourReset)
             Toggle("每周额度重置", isOn: $store.notifyWeeklyReset)
-            Text("自动刷新检测到剩余额度明显上涨时发送系统通知，同一重置周期只提醒一次。首次启用需要允许通知权限。")
+            Text("自动刷新检测到剩余额度明显上涨时发送系统通知。同一轮连续上涨只提醒一次，额度下降后会重新等待下一次重置。首次启用需要允许通知权限。")
                 .font(.caption).foregroundStyle(.secondary)
             HStack {
                 Text("系统通知：\(store.notificationAuthorization)")

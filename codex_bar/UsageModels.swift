@@ -34,10 +34,10 @@ enum UsageResetPeriod {
     case fiveHour
     case weekly
 
-    var notificationCooldown: TimeInterval {
+    var notificationCooldown: TimeInterval? {
         switch self {
         case .fiveHour: return 4 * 60 * 60
-        case .weekly: return 6 * 24 * 60 * 60
+        case .weekly: return nil
         }
     }
 }
@@ -47,14 +47,17 @@ enum UsageResetNotificationPolicy {
         previous: UsageWindow,
         current: UsageWindow,
         period: UsageResetPeriod,
+        isArmed: Bool = true,
         lastNotifiedAt: Date?,
         now: Date = Date()
     ) -> Bool {
+        guard isArmed else { return false }
         guard UsageResetDetector.didReset(previous: previous, current: current, at: now) else {
             return false
         }
-        guard let lastNotifiedAt else { return true }
-        return now.timeIntervalSince(lastNotifiedAt) >= period.notificationCooldown
+        guard let cooldown = period.notificationCooldown,
+              let lastNotifiedAt else { return true }
+        return now.timeIntervalSince(lastNotifiedAt) >= cooldown
     }
 }
 

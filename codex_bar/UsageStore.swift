@@ -40,9 +40,9 @@ final class UsageStore: ObservableObject {
         get { UserDefaults.standard.object(forKey: "lastFiveHourResetNotificationAt") as? Date }
         set { UserDefaults.standard.set(newValue, forKey: "lastFiveHourResetNotificationAt") }
     }
-    private var lastWeeklyNotificationAt: Date? {
-        get { UserDefaults.standard.object(forKey: "lastWeeklyResetNotificationAt") as? Date }
-        set { UserDefaults.standard.set(newValue, forKey: "lastWeeklyResetNotificationAt") }
+    private var weeklyNotificationArmed: Bool {
+        get { UserDefaults.standard.object(forKey: "weeklyResetNotificationArmed") as? Bool ?? true }
+        set { UserDefaults.standard.set(newValue, forKey: "weeklyResetNotificationArmed") }
     }
 
     func scheduleRefresh() {
@@ -99,6 +99,12 @@ final class UsageStore: ObservableObject {
 
     private func notifyForResets(previous: CodexUsage, current: CodexUsage) async {
         let now = Date()
+        if let oldRemaining = previous.weekly.remainingPercent,
+           let newRemaining = current.weekly.remainingPercent,
+           newRemaining < oldRemaining {
+            weeklyNotificationArmed = true
+        }
+
         if notifyFiveHourReset,
            UsageResetNotificationPolicy.shouldNotify(
                 previous: previous.fiveHour,
@@ -118,12 +124,13 @@ final class UsageStore: ObservableObject {
                 previous: previous.weekly,
                 current: current.weekly,
                 period: .weekly,
-                lastNotifiedAt: lastWeeklyNotificationAt,
+                isArmed: weeklyNotificationArmed,
+                lastNotifiedAt: nil,
                 now: now
            ),
            let remaining = current.weekly.remainingPercent {
             if await notifications.send(period: "每周", remainingPercent: remaining) {
-                lastWeeklyNotificationAt = now
+                weeklyNotificationArmed = false
             }
         }
     }
