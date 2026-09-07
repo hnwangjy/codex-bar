@@ -1,17 +1,10 @@
-//
-//  codex_barApp.swift
-//  codex_bar
-//
-//  Created by wjy on 2026/9/5.
-//
-
 import SwiftUI
 
 @main
-struct codex_barApp: App {
+struct CodexBarApp: App {
+    @NSApplicationDelegateAdaptor(AppController.self) private var delegate
+
     var body: some Scene {
-        WindowGroup {
-            ContentView()
-        }
+        Settings { EmptyView() }
     }
 }
