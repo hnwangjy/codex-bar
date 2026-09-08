@@ -44,8 +44,13 @@ final class AppController: NSObject, NSApplicationDelegate, ObservableObject, NS
             store.$showFiveHourInMenuBar,
             store.$showWeeklyInMenuBar
         )
-            .sink { [weak self] _, _, _ in
-                self?.statusItem?.button?.title = " \(self?.store.menuBarTitle ?? "Codex")"
+            .sink { [weak self] usage, showFiveHour, showWeekly in
+                let title = UsageStore.menuBarTitle(
+                    usage: usage,
+                    showFiveHour: showFiveHour,
+                    showWeekly: showWeekly
+                )
+                self?.statusItem?.button?.title = " \(title)"
             }
         return true
     }

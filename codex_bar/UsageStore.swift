@@ -61,11 +61,23 @@ final class UsageStore: ObservableObject {
     }
 
     var menuBarTitle: String {
+        Self.menuBarTitle(
+            usage: usage,
+            showFiveHour: showFiveHourInMenuBar,
+            showWeekly: showWeeklyInMenuBar
+        )
+    }
+
+    static func menuBarTitle(
+        usage: CodexUsage?,
+        showFiveHour: Bool,
+        showWeekly: Bool
+    ) -> String {
         var components: [String] = []
-        if showFiveHourInMenuBar, let percent = usage?.fiveHour.remainingPercent {
+        if showFiveHour, let percent = usage?.fiveHour.remainingPercent {
             components.append(L10n.format("5h %d%%", Int(percent.rounded())))
         }
-        if showWeeklyInMenuBar, let percent = usage?.weekly.remainingPercent {
+        if showWeekly, let percent = usage?.weekly.remainingPercent {
             components.append(L10n.format("W %d%%", Int(percent.rounded())))
         }
         return components.isEmpty ? "Codex" : components.joined(separator: " · ")

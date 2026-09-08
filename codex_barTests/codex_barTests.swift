@@ -30,6 +30,23 @@ struct codex_barTests {
         #expect(store.menuBarTitle == L10n.format("W %d%%", 39))
     }
 
+    @Test @MainActor func menuBarTitleUsesNewlyPublishedUsage() {
+        let refreshed = CodexUsage(
+            fiveHour: UsageWindow(usedPercent: 16, resetAt: nil),
+            weekly: UsageWindow(usedPercent: 2, resetAt: nil),
+            plan: "plus"
+        )
+
+        #expect(UsageStore.menuBarTitle(
+            usage: refreshed,
+            showFiveHour: true,
+            showWeekly: true
+        ) == [
+            L10n.format("5h %d%%", 84),
+            L10n.format("W %d%%", 98)
+        ].joined(separator: " · "))
+    }
+
     @Test func detectsResetFromLargeRemainingQuotaJump() {
         let previous = UsageWindow(usedPercent: 80, resetAt: nil)
         let current = UsageWindow(usedPercent: 20, resetAt: nil)
