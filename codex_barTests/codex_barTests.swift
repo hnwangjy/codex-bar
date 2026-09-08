@@ -11,6 +11,25 @@ import Testing
 
 struct codex_barTests {
 
+    @Test @MainActor func menuBarTitleShowsBothSelectedWindows() {
+        let store = UsageStore.preview
+        store.showFiveHourInMenuBar = true
+        store.showWeeklyInMenuBar = true
+
+        #expect(store.menuBarTitle == [
+            L10n.format("5h %d%%", 62),
+            L10n.format("W %d%%", 39)
+        ].joined(separator: " · "))
+    }
+
+    @Test @MainActor func menuBarTitleCanShowWeeklyOnly() {
+        let store = UsageStore.preview
+        store.showFiveHourInMenuBar = false
+        store.showWeeklyInMenuBar = true
+
+        #expect(store.menuBarTitle == L10n.format("W %d%%", 39))
+    }
+
     @Test func detectsResetFromLargeRemainingQuotaJump() {
         let previous = UsageWindow(usedPercent: 80, resetAt: nil)
         let current = UsageWindow(usedPercent: 20, resetAt: nil)

@@ -13,7 +13,7 @@ On launch, the app first displays a connection panel where you can confirm the l
 ## Features
 
 - Shows remaining 5-hour and weekly usage, reset times, and plan type
-- Lets you choose whether the menu bar displays 5-hour or weekly usage
+- Lets you display 5-hour usage, weekly usage, or both in the menu bar
 - Automatically follows the macOS system language in English or Simplified Chinese
 - Provides a startup panel with connection status and retry controls
 - Reads the Codex login file from `~/.codex/auth.json` by default, with support for selecting another file

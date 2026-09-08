@@ -38,6 +38,8 @@
 "每 15 分钟" = "Every 15 Minutes";
 "每 30 分钟" = "Every 30 Minutes";
 "菜单栏显示" = "Menu Bar Display";
+"5h %d%%" = "5h %d%%";
+"W %d%%" = "W %d%%";
 "额度重置提醒" = "Usage Reset Notifications";
 "5 小时额度重置" = "5-hour Usage Reset";
 "每周额度重置" = "Weekly Usage Reset";

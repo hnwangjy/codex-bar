@@ -25,10 +25,11 @@ final class UsageStore: ObservableObject {
     @Published var refreshMinutes = UserDefaults.standard.integer(forKey: "refreshMinutes") == 0 ? 5 : UserDefaults.standard.integer(forKey: "refreshMinutes") {
         didSet { UserDefaults.standard.set(refreshMinutes, forKey: "refreshMinutes"); scheduleRefresh() }
     }
-    @Published var menuBarQuotaWindow = MenuBarQuotaWindow(
-        rawValue: UserDefaults.standard.string(forKey: "menuBarQuotaWindow") ?? ""
-    ) ?? .fiveHour {
-        didSet { UserDefaults.standard.set(menuBarQuotaWindow.rawValue, forKey: "menuBarQuotaWindow") }
+    @Published var showFiveHourInMenuBar = UsageStore.initialMenuBarSelection().fiveHour {
+        didSet { UserDefaults.standard.set(showFiveHourInMenuBar, forKey: "showFiveHourInMenuBar") }
+    }
+    @Published var showWeeklyInMenuBar = UsageStore.initialMenuBarSelection().weekly {
+        didSet { UserDefaults.standard.set(showWeeklyInMenuBar, forKey: "showWeeklyInMenuBar") }
     }
     @Published var notifyFiveHourReset = UserDefaults.standard.bool(forKey: "notifyFiveHourReset") {
         didSet {
@@ -60,15 +61,29 @@ final class UsageStore: ObservableObject {
     }
 
     var menuBarTitle: String {
-        let selectedWindow: UsageWindow?
-        switch menuBarQuotaWindow {
-        case .fiveHour:
-            selectedWindow = usage?.fiveHour
-        case .weekly:
-            selectedWindow = usage?.weekly
+        var components: [String] = []
+        if showFiveHourInMenuBar, let percent = usage?.fiveHour.remainingPercent {
+            components.append(L10n.format("5h %d%%", Int(percent.rounded())))
         }
-        guard let percent = selectedWindow?.remainingPercent else { return "Codex" }
-        return "\(Int(percent.rounded()))%"
+        if showWeeklyInMenuBar, let percent = usage?.weekly.remainingPercent {
+            components.append(L10n.format("W %d%%", Int(percent.rounded())))
+        }
+        return components.isEmpty ? "Codex" : components.joined(separator: " · ")
+    }
+
+    private static func initialMenuBarSelection() -> (fiveHour: Bool, weekly: Bool) {
+        let defaults = UserDefaults.standard
+        if defaults.object(forKey: "showFiveHourInMenuBar") != nil ||
+            defaults.object(forKey: "showWeeklyInMenuBar") != nil {
+            let fiveHour = defaults.bool(forKey: "showFiveHourInMenuBar")
+            let weekly = defaults.bool(forKey: "showWeeklyInMenuBar")
+            return (fiveHour || !weekly, weekly)
+        }
+
+        let legacy = MenuBarQuotaWindow(
+            rawValue: defaults.string(forKey: "menuBarQuotaWindow") ?? ""
+        ) ?? .fiveHour
+        return (legacy == .fiveHour, legacy == .weekly)
     }
 
     func loadIfNeeded() async {
