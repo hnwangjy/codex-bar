@@ -4,6 +4,16 @@ struct CodexUsageService {
     private let endpoint = URL(string: "https://chatgpt.com/backend-api/wham/usage")!
 
     func fetch(authPath: String) async throws -> CodexUsage {
+        do {
+            return try await fetchOnce(authPath: authPath)
+        } catch {
+            guard shouldRetry(error) else { throw error }
+            try await Task.sleep(nanoseconds: 700_000_000)
+            return try await fetchOnce(authPath: authPath)
+        }
+    }
+
+    private func fetchOnce(authPath: String) async throws -> CodexUsage {
         guard let token = try readAccessToken(path: authPath) else {
             throw CodexUsageError.missingAuthentication
         }
@@ -29,6 +39,26 @@ struct CodexUsageService {
             weekly: routed.weekly,
             plan: root["plan_type"] as? String
         )
+    }
+
+    private func shouldRetry(_ error: Error) -> Bool {
+        if let usageError = error as? CodexUsageError {
+            switch usageError {
+            case .missingAuthentication, .expiredAuthentication:
+                return false
+            case .server(let status):
+                return status == 408 || status == 429 || status >= 500
+            case .invalidResponse:
+                return true
+            }
+        }
+
+        if let urlError = error as? URLError {
+            return urlError.code != .cancelled
+        }
+
+        // The auth file can briefly be unavailable while Codex replaces it.
+        return true
     }
 
     private func readAccessToken(path: String) throws -> String? {

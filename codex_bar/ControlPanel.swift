@@ -142,8 +142,11 @@ struct ControlPanel: View {
                 }
             } else {
                 VStack(alignment: .leading, spacing: 16) {
-                    Label(store.isLoading ? "正在连接…" : (store.errorMessage == nil && store.usage != nil ? "已连接 Codex" : "等待连接"), systemImage: store.usage != nil && store.errorMessage == nil ? "checkmark.circle.fill" : "network")
-                        .foregroundStyle(store.usage != nil && store.errorMessage == nil ? Color.green : Color.secondary)
+                    Label(
+                        store.isLoading ? "正在刷新…" : (store.usage != nil ? "已连接 Codex" : "等待连接"),
+                        systemImage: store.usage != nil ? "checkmark.circle.fill" : "network"
+                    )
+                    .foregroundStyle(store.usage != nil ? Color.green : Color.secondary)
                     if let usage = store.usage {
                         quota("5 小时额度", value: usage.fiveHour.remainingPercent)
                         quota("每周额度", value: usage.weekly.remainingPercent)
@@ -181,9 +184,15 @@ struct ControlPanel: View {
 
     @ViewBuilder private var status: some View {
         if let error = store.errorMessage {
-            Text(error).font(.callout).foregroundStyle(.orange)
-            Text("检查网络和登录文件；登录过期时，在终端运行 codex login 后重试。")
-                .font(.caption).foregroundStyle(.secondary)
+            if store.usage != nil {
+                Text("自动刷新失败，当前展示上次成功获取的数据。")
+                    .font(.callout).foregroundStyle(.orange)
+                Text(error).font(.caption).foregroundStyle(.secondary)
+            } else {
+                Text(error).font(.callout).foregroundStyle(.orange)
+                Text("检查网络和登录文件；登录过期时，在终端运行 codex login 后重试。")
+                    .font(.caption).foregroundStyle(.secondary)
+            }
         } else if let updatedAt = store.updatedAt {
             Text("最近连接：\(updatedAt.formatted(date: .omitted, time: .standard))")
                 .font(.caption).foregroundStyle(.secondary)
