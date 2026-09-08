@@ -18,8 +18,8 @@ struct ContentView: View {
                 .frame(maxWidth: .infinity, minHeight: 112)
             } else if let usage = store.usage {
                 VStack(spacing: 12) {
-                    UsageRow(title: "5 小时", window: usage.fiveHour)
-                    UsageRow(title: "每周", window: usage.weekly)
+                    UsageRow(title: L10n.text("5 小时"), window: usage.fiveHour)
+                    UsageRow(title: L10n.text("每周"), window: usage.weekly)
                 }
             } else {
                 errorView
@@ -27,7 +27,7 @@ struct ContentView: View {
 
             Divider()
             if store.usage != nil, let error = store.errorMessage {
-                Text("刷新失败，当前为上次数据：\(error)")
+                Text(L10n.format("刷新失败，当前为上次数据：%@", error))
                     .font(.caption).foregroundStyle(.orange)
             }
             HStack {
@@ -39,7 +39,7 @@ struct ContentView: View {
 
             HStack {
                 if let updatedAt = store.updatedAt {
-                    Text("更新于 \(updatedAt.formatted(date: .omitted, time: .shortened))")
+                    Text(L10n.format("更新于 %@", updatedAt.formatted(date: .omitted, time: .shortened)))
                         .font(.caption)
                         .foregroundStyle(.tertiary)
                 }
@@ -79,10 +79,10 @@ struct ContentView: View {
         VStack(alignment: .leading, spacing: 8) {
             Label("暂时无法获取额度", systemImage: "exclamationmark.triangle")
                 .font(.subheadline.weight(.semibold))
-            Text(store.errorMessage ?? "未知错误")
+            Text(store.errorMessage ?? L10n.text("未知错误"))
                 .font(.caption)
                 .foregroundStyle(.secondary)
-            if store.errorMessage?.contains("登录") == true {
+            if store.errorRequiresLogin {
                 Text("请先在终端运行 codex login，然后重新刷新。")
                     .font(.caption)
                     .foregroundStyle(.secondary)
@@ -103,7 +103,7 @@ private struct UsageRow: View {
                 Text(title).font(.subheadline.weight(.medium))
                 Spacer()
                 if let percent = window.remainingPercent {
-                    Text("剩余 \(Int(percent.rounded()))%")
+                    Text(L10n.format("剩余 %d%%", Int(percent.rounded())))
                         .font(.subheadline.monospacedDigit().weight(.semibold))
                 } else {
                     Text("未提供").font(.caption).foregroundStyle(.secondary)
@@ -112,7 +112,7 @@ private struct UsageRow: View {
             ProgressView(value: window.remainingPercent ?? 0, total: 100)
                 .tint(tintColor)
             if let resetAt = window.resetAt {
-                Text("重置时间：\(resetAt.formatted(date: .abbreviated, time: .shortened))")
+                Text(L10n.format("重置时间：%@", resetAt.formatted(date: .abbreviated, time: .shortened)))
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }

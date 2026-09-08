@@ -24,7 +24,7 @@ final class AppController: NSObject, NSApplicationDelegate, ObservableObject, NS
         }
         button.image = NSImage(
             systemSymbolName: "gauge.with.dots.needle.67percent",
-            accessibilityDescription: "Codex 额度"
+            accessibilityDescription: L10n.text("Codex 额度")
         )
         button.imagePosition = .imageLeading
         button.target = self
@@ -143,13 +143,13 @@ struct ControlPanel: View {
             } else {
                 VStack(alignment: .leading, spacing: 16) {
                     Label(
-                        store.isLoading ? "正在刷新…" : (store.usage != nil ? "已连接 Codex" : "等待连接"),
+                        store.isLoading ? L10n.text("正在刷新…") : (store.usage != nil ? L10n.text("已连接 Codex") : L10n.text("等待连接")),
                         systemImage: store.usage != nil ? "checkmark.circle.fill" : "network"
                     )
                     .foregroundStyle(store.usage != nil ? Color.green : Color.secondary)
                     if let usage = store.usage {
-                        quota("5 小时额度", value: usage.fiveHour.remainingPercent)
-                        quota("每周额度", value: usage.weekly.remainingPercent)
+                        quota(L10n.text("5 小时额度"), value: usage.fiveHour.remainingPercent)
+                        quota(L10n.text("每周额度"), value: usage.weekly.remainingPercent)
                     }
                     status
                     Button("重新连接") { Task { await store.refresh() } }
@@ -164,7 +164,7 @@ struct ControlPanel: View {
             HStack {
                 Button("退出") { NSApp.terminate(nil) }
                 Spacer()
-                Button(controller.menuEnabled ? "返回菜单栏" : "启动菜单栏") { controller.startMenu() }
+                Button(controller.menuEnabled ? L10n.text("返回菜单栏") : L10n.text("启动菜单栏")) { controller.startMenu() }
                     .buttonStyle(.borderedProminent)
                     .keyboardShortcut(.defaultAction)
             }
@@ -176,7 +176,7 @@ struct ControlPanel: View {
             HStack {
                 Text(title)
                 Spacer()
-                Text(value.map { "剩余 \(Int($0.rounded()))%" } ?? "未提供").monospacedDigit()
+                Text(value.map { L10n.format("剩余 %d%%", Int($0.rounded())) } ?? L10n.text("未提供")).monospacedDigit()
             }
             if let value { ProgressView(value: min(100, max(0, value)), total: 100).tint(.mint) }
         }
@@ -194,7 +194,7 @@ struct ControlPanel: View {
                     .font(.caption).foregroundStyle(.secondary)
             }
         } else if let updatedAt = store.updatedAt {
-            Text("最近连接：\(updatedAt.formatted(date: .omitted, time: .standard))")
+                Text(L10n.format("最近连接：%@", updatedAt.formatted(date: .omitted, time: .standard)))
                 .font(.caption).foregroundStyle(.secondary)
         }
     }
@@ -234,12 +234,12 @@ struct ControlPanel: View {
             Text("自动刷新检测到剩余额度明显上涨时发送系统通知。同一轮连续上涨只提醒一次，额度下降后会重新等待下一次重置。首次启用需要允许通知权限。")
                 .font(.caption).foregroundStyle(.secondary)
             HStack {
-                Text("系统通知：\(store.notificationAuthorization)")
+                Text(L10n.format("系统通知：%@", store.notificationAuthorization))
                     .font(.caption).foregroundStyle(.secondary)
                 Spacer()
                 Button("发送测试提醒") { Task { await store.sendTestNotification() } }
             }
-            Button(store.isLoading ? "正在测试…" : "测试连接") { Task { await store.refresh() } }
+            Button(store.isLoading ? L10n.text("正在测试…") : L10n.text("测试连接")) { Task { await store.refresh() } }
                 .disabled(store.isLoading)
             status
             Text("设置自动保存。网络连接使用 macOS 当前网络与系统代理配置。")

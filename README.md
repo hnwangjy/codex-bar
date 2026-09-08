@@ -1,5 +1,7 @@
 # Codex Bar
 
+[English](README_EN.md) | 简体中文
+
 <p align="center">
   <img src="codex_bar/Assets.xcassets/AppIcon.appiconset/icon-256.png" width="128" alt="Codex Bar 图标">
 </p>
@@ -12,6 +14,8 @@ Codex Bar 是一个轻量的 macOS 原生工具，用于在菜单栏查看 Codex
 
 - 显示 Codex 5 小时与每周剩余额度、重置时间和套餐类型
 - 菜单栏显示当前剩余额度百分比
+- 可选择在菜单栏显示 5 小时或每周剩余额度
+- 根据 macOS 系统语言自动显示简体中文或英文
 - 启动面板展示连接状态并提供重试
 - 支持选择 Codex 登录文件，默认读取 `~/.codex/auth.json`
 - 支持 5、15、30 分钟自动刷新

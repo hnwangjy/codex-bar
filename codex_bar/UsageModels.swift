@@ -1,5 +1,15 @@
 import Foundation
 
+enum L10n {
+    static func text(_ key: String) -> String {
+        NSLocalizedString(key, comment: "")
+    }
+
+    static func format(_ key: String, _ arguments: CVarArg...) -> String {
+        String(format: text(key), locale: Locale.current, arguments: arguments)
+    }
+}
+
 enum MenuBarQuotaWindow: String, CaseIterable, Identifiable {
     case fiveHour
     case weekly
@@ -8,8 +18,8 @@ enum MenuBarQuotaWindow: String, CaseIterable, Identifiable {
 
     var title: String {
         switch self {
-        case .fiveHour: return "5 小时额度"
-        case .weekly: return "每周额度"
+        case .fiveHour: return L10n.text("5 小时额度")
+        case .weekly: return L10n.text("每周额度")
         }
     }
 }
@@ -94,10 +104,10 @@ enum CodexUsageError: LocalizedError {
 
     var errorDescription: String? {
         switch self {
-        case .missingAuthentication: return "没有找到 Codex 登录信息。"
-        case .expiredAuthentication: return "Codex 登录已过期。"
-        case .server(let status): return "额度服务返回 HTTP \(status)。"
-        case .invalidResponse: return "额度数据格式暂时无法识别。"
+        case .missingAuthentication: return L10n.text("没有找到 Codex 登录信息。")
+        case .expiredAuthentication: return L10n.text("Codex 登录已过期。")
+        case .server(let status): return L10n.format("额度服务返回 HTTP %d。", status)
+        case .invalidResponse: return L10n.text("额度数据格式暂时无法识别。")
         }
     }
 }

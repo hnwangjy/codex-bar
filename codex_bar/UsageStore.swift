@@ -6,8 +6,9 @@ final class UsageStore: ObservableObject {
     @Published private(set) var usage: CodexUsage?
     @Published private(set) var isLoading = false
     @Published private(set) var errorMessage: String?
+    @Published private(set) var errorRequiresLogin = false
     @Published private(set) var updatedAt: Date?
-    @Published private(set) var notificationAuthorization = "正在检查…"
+    @Published private(set) var notificationAuthorization = L10n.text("正在检查…")
 
     private let service = CodexUsageService()
     private let notifications = ResetNotificationService()
@@ -18,6 +19,7 @@ final class UsageStore: ObservableObject {
             usage = nil
             updatedAt = nil
             errorMessage = nil
+            errorRequiresLogin = false
         }
     }
     @Published var refreshMinutes = UserDefaults.standard.integer(forKey: "refreshMinutes") == 0 ? 5 : UserDefaults.standard.integer(forKey: "refreshMinutes") {
@@ -101,11 +103,22 @@ final class UsageStore: ObservableObject {
             usage = result
             updatedAt = Date()
             errorMessage = nil
+            errorRequiresLogin = false
             if let previous {
                 await notifyForResets(previous: previous, current: result)
             }
         } catch {
             errorMessage = (error as? LocalizedError)?.errorDescription ?? error.localizedDescription
+            if let usageError = error as? CodexUsageError {
+                switch usageError {
+                case .missingAuthentication, .expiredAuthentication:
+                    errorRequiresLogin = true
+                default:
+                    errorRequiresLogin = false
+                }
+            } else {
+                errorRequiresLogin = false
+            }
         }
     }
 
@@ -126,7 +139,7 @@ final class UsageStore: ObservableObject {
                 now: now
            ),
            let remaining = current.fiveHour.remainingPercent {
-            if await notifications.send(period: "5 小时", remainingPercent: remaining) {
+            if await notifications.send(period: L10n.text("5 小时"), remainingPercent: remaining) {
                 lastFiveHourNotificationAt = now
             }
         }
@@ -141,7 +154,7 @@ final class UsageStore: ObservableObject {
                 now: now
            ),
            let remaining = current.weekly.remainingPercent {
-            if await notifications.send(period: "每周", remainingPercent: remaining) {
+            if await notifications.send(period: L10n.text("每周"), remainingPercent: remaining) {
                 weeklyNotificationArmed = false
             }
         }
