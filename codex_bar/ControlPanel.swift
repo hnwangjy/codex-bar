@@ -39,10 +39,10 @@ final class AppController: NSObject, NSApplicationDelegate, ObservableObject, NS
                 openSettings: { [weak self] in self?.showPanel(settings: true) }
             )
         )
-        usageObservation = store.$usage.sink { [weak self] usage in
-            let percent = usage?.fiveHour.remainingPercent ?? usage?.weekly.remainingPercent
-            self?.statusItem?.button?.title = percent.map { " \(Int($0.rounded()))%" } ?? " Codex"
-        }
+        usageObservation = Publishers.CombineLatest(store.$usage, store.$menuBarQuotaWindow)
+            .sink { [weak self] _, _ in
+                self?.statusItem?.button?.title = " \(self?.store.menuBarTitle ?? "Codex")"
+            }
         return true
     }
 
@@ -221,6 +221,11 @@ struct ControlPanel: View {
                 Text("每 5 分钟").tag(5)
                 Text("每 15 分钟").tag(15)
                 Text("每 30 分钟").tag(30)
+            }
+            Picker("菜单栏显示", selection: $store.menuBarQuotaWindow) {
+                ForEach(MenuBarQuotaWindow.allCases) { window in
+                    Text(window.title).tag(window)
+                }
             }
             Divider()
             Text("额度重置提醒").font(.headline)

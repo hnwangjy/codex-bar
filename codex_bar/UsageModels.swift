@@ -1,5 +1,19 @@
 import Foundation
 
+enum MenuBarQuotaWindow: String, CaseIterable, Identifiable {
+    case fiveHour
+    case weekly
+
+    var id: Self { self }
+
+    var title: String {
+        switch self {
+        case .fiveHour: return "5 小时额度"
+        case .weekly: return "每周额度"
+        }
+    }
+}
+
 struct UsageWindow: Sendable {
     let usedPercent: Double?
     let resetAt: Date?

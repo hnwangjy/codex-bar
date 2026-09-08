@@ -23,6 +23,11 @@ final class UsageStore: ObservableObject {
     @Published var refreshMinutes = UserDefaults.standard.integer(forKey: "refreshMinutes") == 0 ? 5 : UserDefaults.standard.integer(forKey: "refreshMinutes") {
         didSet { UserDefaults.standard.set(refreshMinutes, forKey: "refreshMinutes"); scheduleRefresh() }
     }
+    @Published var menuBarQuotaWindow = MenuBarQuotaWindow(
+        rawValue: UserDefaults.standard.string(forKey: "menuBarQuotaWindow") ?? ""
+    ) ?? .fiveHour {
+        didSet { UserDefaults.standard.set(menuBarQuotaWindow.rawValue, forKey: "menuBarQuotaWindow") }
+    }
     @Published var notifyFiveHourReset = UserDefaults.standard.bool(forKey: "notifyFiveHourReset") {
         didSet {
             UserDefaults.standard.set(notifyFiveHourReset, forKey: "notifyFiveHourReset")
@@ -53,7 +58,14 @@ final class UsageStore: ObservableObject {
     }
 
     var menuBarTitle: String {
-        guard let percent = usage?.fiveHour.remainingPercent ?? usage?.weekly.remainingPercent else { return "Codex" }
+        let selectedWindow: UsageWindow?
+        switch menuBarQuotaWindow {
+        case .fiveHour:
+            selectedWindow = usage?.fiveHour
+        case .weekly:
+            selectedWindow = usage?.weekly
+        }
+        guard let percent = selectedWindow?.remainingPercent else { return "Codex" }
         return "\(Int(percent.rounded()))%"
     }
 
