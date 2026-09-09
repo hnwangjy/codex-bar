@@ -22,7 +22,10 @@ app_zip="$work_dir/Codex-Bar.app.zip"
 dmg_path="$output_dir/Codex-Bar-$version.dmg"
 
 cleanup() {
+    exit_code=$?
+    trap - EXIT
     rm -rf "$work_dir"
+    exit "$exit_code"
 }
 trap cleanup EXIT
 
@@ -40,7 +43,7 @@ fi
 
 mkdir -p "$output_dir" "$staging_dir"
 
-echo "Archiving Codex Bar $version…"
+echo "Archiving Codex Bar ${version}…"
 xcodebuild archive \
     -project "$project_dir/codex_bar.xcodeproj" \
     -scheme codex_bar \
@@ -68,7 +71,7 @@ xcrun stapler staple "$app_path"
 ditto "$app_path" "$staged_app"
 ln -s /Applications "$staging_dir/Applications"
 
-echo "Creating $dmg_path…"
+echo "Creating ${dmg_path}…"
 hdiutil create \
     -volname "Codex Bar" \
     -srcfolder "$staging_dir" \
