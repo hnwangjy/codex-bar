@@ -74,18 +74,18 @@ Codex Bar 在本机只读解析 Codex 登录文件，并将访问令牌作为 Au
 3. 构建、签名、公证并生成 DMG：
 
    ```bash
-   NOTARY_PROFILE=codex-bar-notary scripts/build-dmg.sh 1.0.0
+   NOTARY_PROFILE=codex-bar-notary scripts/build-dmg.sh 0.0.1
    ```
 
 4. 推送版本标签并发布到 GitHub Releases：
 
    ```bash
-   git tag v1.0.0
-   git push origin v1.0.0
-   scripts/publish-release.sh 1.0.0
+   git tag v0.0.1
+   git push origin v0.0.1
+   scripts/publish-release.sh 0.0.1
    ```
 
-最终文件位于 `dist/Codex-Bar-1.0.0.dmg`，其中包含可拖入“应用程序”文件夹的 `Codex Bar.app`。
+最终文件位于 `dist/Codex-Bar-0.0.1.dmg`，其中包含可拖入“应用程序”文件夹的 `Codex Bar.app`。
 
 ## 来源与致谢
 

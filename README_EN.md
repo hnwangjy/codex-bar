@@ -73,18 +73,18 @@ Public distribution requires a valid `Developer ID Application` certificate and 
 3. Build, sign, notarize, and create the DMG:
 
    ```bash
-   NOTARY_PROFILE=codex-bar-notary scripts/build-dmg.sh 1.0.0
+   NOTARY_PROFILE=codex-bar-notary scripts/build-dmg.sh 0.0.1
    ```
 
 4. Push the version tag and publish the DMG to GitHub Releases:
 
    ```bash
-   git tag v1.0.0
-   git push origin v1.0.0
-   scripts/publish-release.sh 1.0.0
+   git tag v0.0.1
+   git push origin v0.0.1
+   scripts/publish-release.sh 0.0.1
    ```
 
-The final file is written to `dist/Codex-Bar-1.0.0.dmg` and contains `Codex Bar.app` with an Applications shortcut.
+The final file is written to `dist/Codex-Bar-0.0.1.dmg` and contains `Codex Bar.app` with an Applications shortcut.
 
 ## Source and Acknowledgements
 
