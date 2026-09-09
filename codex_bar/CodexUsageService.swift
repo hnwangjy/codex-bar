@@ -1,16 +1,26 @@
+import CFNetwork
 import Foundation
 
 struct CodexUsageService {
     private let endpoint = URL(string: "https://chatgpt.com/backend-api/wham/usage")!
 
     func fetch(authPath: String) async throws -> CodexUsage {
-        do {
-            return try await fetchOnce(authPath: authPath)
-        } catch {
-            guard shouldRetry(error) else { throw error }
-            try await Task.sleep(nanoseconds: 700_000_000)
-            return try await fetchOnce(authPath: authPath)
+        var lastError: Error?
+        let retryDelays: [UInt64] = [700_000_000, 1_500_000_000]
+
+        for attempt in 0...retryDelays.count {
+            do {
+                return try await fetchOnce(authPath: authPath)
+            } catch {
+                lastError = error
+                guard attempt < retryDelays.count, shouldRetry(error) else {
+                    throw userFacingError(error)
+                }
+                try await Task.sleep(nanoseconds: retryDelays[attempt])
+            }
         }
+
+        throw userFacingError(lastError ?? CodexUsageError.invalidResponse)
     }
 
     private func fetchOnce(authPath: String) async throws -> CodexUsage {
@@ -48,7 +58,7 @@ struct CodexUsageService {
                 return false
             case .server(let status):
                 return status == 408 || status == 429 || status >= 500
-            case .invalidResponse:
+            case .invalidResponse, .proxyTLSFailure, .secureConnectionFailed, .networkUnavailable:
                 return true
             }
         }
@@ -59,6 +69,34 @@ struct CodexUsageService {
 
         // The auth file can briefly be unavailable while Codex replaces it.
         return true
+    }
+
+    private func userFacingError(_ error: Error) -> Error {
+        guard let urlError = error as? URLError else { return error }
+        switch urlError.code {
+        case .secureConnectionFailed,
+             .serverCertificateHasBadDate,
+             .serverCertificateUntrusted,
+             .serverCertificateHasUnknownRoot,
+             .serverCertificateNotYetValid:
+            if let proxy = systemHTTPSProxy() {
+                return CodexUsageError.proxyTLSFailure(proxy)
+            }
+            return CodexUsageError.secureConnectionFailed
+        case .notConnectedToInternet, .networkConnectionLost:
+            return CodexUsageError.networkUnavailable
+        default:
+            return error
+        }
+    }
+
+    private func systemHTTPSProxy() -> String? {
+        guard let settings = CFNetworkCopySystemProxySettings()?.takeRetainedValue() as? [String: Any],
+              (settings[kCFNetworkProxiesHTTPSEnable as String] as? NSNumber)?.boolValue == true,
+              let host = settings[kCFNetworkProxiesHTTPSProxy as String] as? String,
+              !host.isEmpty else { return nil }
+        let port = (settings[kCFNetworkProxiesHTTPSPort as String] as? NSNumber)?.intValue
+        return port.map { "\(host):\($0)" } ?? host
     }
 
     private func readAccessToken(path: String) throws -> String? {

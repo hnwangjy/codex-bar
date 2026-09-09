@@ -101,6 +101,9 @@ enum CodexUsageError: LocalizedError {
     case expiredAuthentication
     case server(Int)
     case invalidResponse
+    case proxyTLSFailure(String)
+    case secureConnectionFailed
+    case networkUnavailable
 
     var errorDescription: String? {
         switch self {
@@ -108,6 +111,12 @@ enum CodexUsageError: LocalizedError {
         case .expiredAuthentication: return L10n.text("Codex 登录已过期。")
         case .server(let status): return L10n.format("额度服务返回 HTTP %d。", status)
         case .invalidResponse: return L10n.text("额度数据格式暂时无法识别。")
+        case .proxyTLSFailure(let proxy):
+            return L10n.format("本地代理 %@ 无法与 ChatGPT 建立安全连接，请切换代理节点后重试。", proxy)
+        case .secureConnectionFailed:
+            return L10n.text("无法与 ChatGPT 建立安全连接，请检查网络、代理和系统时间。")
+        case .networkUnavailable:
+            return L10n.text("当前网络不可用，恢复连接后会自动刷新。")
         }
     }
 }

@@ -61,3 +61,6 @@
 "额度服务返回 HTTP %d。" = "The usage service returned HTTP %d.";
 "额度数据格式暂时无法识别。" = "The usage response format is currently unsupported.";
 "正在检查…" = "Checking…";
+"本地代理 %@ 无法与 ChatGPT 建立安全连接，请切换代理节点后重试。" = "The local proxy at %@ could not establish a secure connection to ChatGPT. Switch proxy nodes and try again.";
+"无法与 ChatGPT 建立安全连接，请检查网络、代理和系统时间。" = "Could not establish a secure connection to ChatGPT. Check your network, proxy, and system time.";
+"当前网络不可用，恢复连接后会自动刷新。" = "The network is unavailable. Usage will refresh automatically when the connection returns.";
