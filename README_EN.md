@@ -57,6 +57,35 @@ Codex Bar only reads the local Codex login file and sends its access token as an
 
 The usage endpoint is not currently a public or stable developer API. Its address or response structure may change. This project is not affiliated with or officially endorsed by OpenAI.
 
+## Build a Distribution DMG
+
+Public distribution requires a valid `Developer ID Application` certificate and Apple notarization. A development certificate or unsigned build is not sufficient.
+
+1. Create a `Developer ID Application` certificate in Xcode under **Settings → Accounts → Manage Certificates**.
+2. Store notarization credentials in the keychain (the command securely prompts for an app-specific Apple ID password):
+
+   ```bash
+   xcrun notarytool store-credentials codex-bar-notary \
+     --apple-id "your Apple ID" \
+     --team-id 64XC9BXK5K
+   ```
+
+3. Build, sign, notarize, and create the DMG:
+
+   ```bash
+   NOTARY_PROFILE=codex-bar-notary scripts/build-dmg.sh 1.0.0
+   ```
+
+4. Push the version tag and publish the DMG to GitHub Releases:
+
+   ```bash
+   git tag v1.0.0
+   git push origin v1.0.0
+   scripts/publish-release.sh 1.0.0
+   ```
+
+The final file is written to `dist/Codex-Bar-1.0.0.dmg` and contains `Codex Bar.app` with an Applications shortcut.
+
 ## Source and Acknowledgements
 
 The approach used to read Codex authentication data, discover the usage endpoint, and route usage windows is derived from [CodexIsland by Eric Park](https://github.com/ericjypark/codex-island), which is distributed under the [MIT License](https://github.com/ericjypark/codex-island/blob/main/LICENSE).

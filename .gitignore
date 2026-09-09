@@ -1,0 +1,7 @@
+dist/
+build/
+DerivedData/
+*.xcarchive
+*.dmg
+*.zip
+.DS_Store

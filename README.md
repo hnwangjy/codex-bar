@@ -58,6 +58,35 @@ Codex Bar 在本机只读解析 Codex 登录文件，并将访问令牌作为 Au
 
 额度接口目前不是公开、稳定的开发者 API，服务地址或返回结构将来可能变化。本项目与 OpenAI 没有隶属或官方合作关系。
 
+## 制作正式 DMG
+
+公开分发需要有效的 `Developer ID Application` 证书和 Apple 公证，不能使用开发证书或关闭签名。
+
+1. 在 Xcode 的 **Settings → Accounts → Manage Certificates** 中创建 `Developer ID Application` 证书。
+2. 创建公证钥匙串配置（过程中会安全地询问 Apple ID 专用密码）：
+
+   ```bash
+   xcrun notarytool store-credentials codex-bar-notary \
+     --apple-id "你的 Apple ID" \
+     --team-id 64XC9BXK5K
+   ```
+
+3. 构建、签名、公证并生成 DMG：
+
+   ```bash
+   NOTARY_PROFILE=codex-bar-notary scripts/build-dmg.sh 1.0.0
+   ```
+
+4. 推送版本标签并发布到 GitHub Releases：
+
+   ```bash
+   git tag v1.0.0
+   git push origin v1.0.0
+   scripts/publish-release.sh 1.0.0
+   ```
+
+最终文件位于 `dist/Codex-Bar-1.0.0.dmg`，其中包含可拖入“应用程序”文件夹的 `Codex Bar.app`。
+
 ## 来源与致谢
 
 本项目的 Codex 认证文件读取方式、额度接口发现和窗口路由思路来源于 [Eric Park 的 CodexIsland](https://github.com/ericjypark/codex-island)。CodexIsland 以 [MIT License](https://github.com/ericjypark/codex-island/blob/main/LICENSE) 开源。
