@@ -20,6 +20,7 @@ jobs:
         -project codex_bar.xcodeproj
         -scheme codex_bar
         -configuration Debug
+        -packageAuthorizationProvider netrc
         -destination 'platform=macOS'
         CODE_SIGNING_ALLOWED=NO
 
@@ -29,6 +30,7 @@ jobs:
         -project codex_bar.xcodeproj
         -scheme codex_bar
         -configuration Debug
+        -packageAuthorizationProvider netrc
         -destination 'platform=macOS'
         -only-testing:codex_barTests
         CODE_SIGNING_ALLOWED=NO

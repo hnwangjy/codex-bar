@@ -74,18 +74,30 @@ Codex Bar 在本机只读解析 Codex 登录文件，并将访问令牌作为 Au
 3. 构建、签名、公证并生成 DMG：
 
    ```bash
-   NOTARY_PROFILE=codex-bar-notary scripts/build-dmg.sh 0.0.2
+   NOTARY_PROFILE=codex-bar-notary scripts/build-dmg.sh 0.0.3
    ```
 
 4. 推送版本标签并发布到 GitHub Releases：
 
    ```bash
-   git tag v0.0.2
-   git push origin v0.0.2
-   scripts/publish-release.sh 0.0.2
+   git tag v0.0.3
+   git push origin v0.0.3
+   scripts/publish-release.sh 0.0.3
    ```
 
-最终文件位于 `dist/Codex-Bar-0.0.2.dmg`，其中包含可拖入“应用程序”文件夹的 `Codex Bar.app`。
+最终文件位于 `dist/Codex-Bar-0.0.3.dmg`，其中包含可拖入“应用程序”文件夹的 `Codex Bar.app`。
+
+## 自动更新
+
+Codex Bar 使用 Sparkle 从仓库中的 `appcast.xml` 检查并安装更新。应用默认每天自动检查一次，也可以在设置页或菜单弹窗中手动选择“检查更新”。
+
+发布后续版本时，在创建标签前更新 appcast：
+
+```bash
+scripts/update-appcast.sh 0.0.4 4
+```
+
+Sparkle 的 EdDSA 私钥只保存在发布者的 macOS 钥匙串中，不应提交到仓库。首次包含更新器的版本仍需要用户手动安装一次，后续版本即可在应用内完成更新。
 
 ## 来源与致谢
 

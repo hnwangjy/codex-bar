@@ -48,6 +48,7 @@ xcodebuild archive \
     -project "$project_dir/codex_bar.xcodeproj" \
     -scheme codex_bar \
     -configuration Release \
+    -packageAuthorizationProvider netrc \
     -destination 'generic/platform=macOS' \
     -archivePath "$archive_path" \
     DEVELOPMENT_TEAM="$team_id" \
@@ -60,6 +61,17 @@ if [[ ! -d "$app_path" ]]; then
     echo "Archived app was not found at $app_path"
     exit 66
 fi
+
+# Sparkle ships nested update helpers and XPC services. Re-sign the complete
+# archived bundle with our Developer ID so every nested executable has the
+# same trusted identity and a secure timestamp for Apple notarization.
+codesign \
+    --force \
+    --deep \
+    --options runtime \
+    --timestamp \
+    --sign "$identity" \
+    "$app_path"
 
 codesign --verify --deep --strict --verbose=2 "$app_path"
 

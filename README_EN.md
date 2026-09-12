@@ -73,18 +73,30 @@ Public distribution requires a valid `Developer ID Application` certificate and 
 3. Build, sign, notarize, and create the DMG:
 
    ```bash
-   NOTARY_PROFILE=codex-bar-notary scripts/build-dmg.sh 0.0.2
+   NOTARY_PROFILE=codex-bar-notary scripts/build-dmg.sh 0.0.3
    ```
 
 4. Push the version tag and publish the DMG to GitHub Releases:
 
    ```bash
-   git tag v0.0.2
-   git push origin v0.0.2
-   scripts/publish-release.sh 0.0.2
+   git tag v0.0.3
+   git push origin v0.0.3
+   scripts/publish-release.sh 0.0.3
    ```
 
-The final file is written to `dist/Codex-Bar-0.0.2.dmg` and contains `Codex Bar.app` with an Applications shortcut.
+The final file is written to `dist/Codex-Bar-0.0.3.dmg` and contains `Codex Bar.app` with an Applications shortcut.
+
+## Automatic Updates
+
+Codex Bar uses Sparkle to check and install updates from the repository's `appcast.xml`. It checks automatically once per day by default, and users can also choose “Check for Updates” from Settings or the menu popover.
+
+For future releases, update the appcast before creating the tag:
+
+```bash
+scripts/update-appcast.sh 0.0.4 4
+```
+
+The Sparkle EdDSA private key remains in the publisher's macOS Keychain and must never be committed. Users must manually install the first release that includes the updater; subsequent releases can update in place.
 
 ## Source and Acknowledgements
 

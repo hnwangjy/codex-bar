@@ -5,6 +5,7 @@ struct ContentView: View {
     @ObservedObject var store: UsageStore
     var openPanel: () -> Void = {}
     var openSettings: () -> Void = {}
+    var checkForUpdates: () -> Void = {}
 
     var body: some View {
         VStack(spacing: 0) {
@@ -79,6 +80,9 @@ struct ContentView: View {
             MenuToolbarButton(title: L10n.text("打开面板"), symbol: "rectangle.on.rectangle", action: openPanel)
             MenuToolbarButton(title: L10n.text("设置"), symbol: "gearshape", action: openSettings)
             Spacer(minLength: 8)
+            Button(action: checkForUpdates) {
+                Image(systemName: "arrow.down.circle").frame(width: 26, height: 26)
+            }.buttonStyle(.plain).help("检查更新…")
             Button { Task { await store.refresh() } } label: {
                 Image(systemName: "arrow.clockwise")
                     .rotationEffect(.degrees(store.isLoading ? 360 : 0))

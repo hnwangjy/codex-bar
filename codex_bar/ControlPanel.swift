@@ -1,11 +1,13 @@
 import AppKit
 import Combine
+import Sparkle
 import SwiftUI
 import UserNotifications
 
 @MainActor
 final class AppController: NSObject, NSApplicationDelegate, ObservableObject, NSWindowDelegate, UNUserNotificationCenterDelegate {
     let store = UsageStore()
+    let updaterController = SPUStandardUpdaterController(startingUpdater: true, updaterDelegate: nil, userDriverDelegate: nil)
     @Published var menuEnabled = false
     @Published var settingsSelected = false
     private var panel: NSWindow?
@@ -28,7 +30,8 @@ final class AppController: NSObject, NSApplicationDelegate, ObservableObject, NS
         popover.contentViewController = NSHostingController(rootView: ContentView(
             store: store,
             openPanel: { [weak self] in self?.showPanel() },
-            openSettings: { [weak self] in self?.showPanel(settings: true) }
+            openSettings: { [weak self] in self?.showPanel(settings: true) },
+            checkForUpdates: { [weak self] in self?.checkForUpdates() }
         ))
         usageObservation = Publishers.CombineLatest3(store.$usage, store.$showFiveHourInMenuBar, store.$showWeeklyInMenuBar)
             .sink { [weak self] usage, fiveHour, weekly in
@@ -72,6 +75,10 @@ final class AppController: NSObject, NSApplicationDelegate, ObservableObject, NS
         guard installMenu() else { return }
         menuEnabled = true
         DispatchQueue.main.async { [weak self] in self?.panel?.orderOut(nil) }
+    }
+
+    func checkForUpdates() {
+        updaterController.checkForUpdates(nil)
     }
 
     func windowWillClose(_ notification: Notification) { guard installMenu() else { return }; menuEnabled = true }
@@ -197,6 +204,19 @@ struct ControlPanel: View {
                         Button("发送测试提醒") { Task { await store.sendTestNotification() } }.buttonStyle(.borderless)
                     }
                 }
+                SettingsGroup(title: L10n.text("软件更新"), symbol: "arrow.triangle.2.circlepath.circle") {
+                    HStack {
+                        VStack(alignment: .leading, spacing: 3) {
+                            Text(L10n.format("当前版本：%@", appVersion))
+                            Text("应用会自动检查新版本，也可以立即手动检查。")
+                                .font(.caption).foregroundStyle(.secondary)
+                        }
+                        Spacer()
+                        Button { controller.checkForUpdates() } label: {
+                            Label("检查更新…", systemImage: "arrow.clockwise")
+                        }
+                    }
+                }
                 HStack {
                     Text("设置自动保存。网络连接使用 macOS 当前网络与系统代理配置。").font(.caption).foregroundStyle(.tertiary)
                     Spacer()
@@ -220,6 +240,10 @@ struct ControlPanel: View {
     private func chooseAuthFile() {
         let picker = NSOpenPanel(); picker.canChooseDirectories = false; picker.allowsMultipleSelection = false; picker.showsHiddenFiles = true
         if picker.runModal() == .OK, let url = picker.url { store.authPath = url.path }
+    }
+
+    private var appVersion: String {
+        Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "—"
     }
 }
 
