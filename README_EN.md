@@ -18,6 +18,7 @@ On launch, the app first displays a connection panel where you can confirm the l
 - Provides a startup panel with connection status and retry controls
 - Reads the Codex login file from `~/.codex/auth.json` by default, with support for selecting another file
 - Supports automatic refresh every 5, 15, or 30 minutes
+- Can launch automatically when you log in to your Mac
 - Detects usage resets and offers separate system notifications for 5-hour and weekly resets
 - Stores preferences locally in `UserDefaults`
 - Never stores or displays login tokens
@@ -73,18 +74,18 @@ Public distribution requires a valid `Developer ID Application` certificate and 
 3. Build, sign, notarize, and create the DMG:
 
    ```bash
-   NOTARY_PROFILE=codex-bar-notary scripts/build-dmg.sh 0.0.3
+   NOTARY_PROFILE=codex-bar-notary scripts/build-dmg.sh 0.0.4
    ```
 
 4. Push the version tag and publish the DMG to GitHub Releases:
 
    ```bash
-   git tag v0.0.3
-   git push origin v0.0.3
-   scripts/publish-release.sh 0.0.3
+   git tag v0.0.4
+   git push origin v0.0.4
+   scripts/publish-release.sh 0.0.4
    ```
 
-The final file is written to `dist/Codex-Bar-0.0.3.dmg` and contains `Codex Bar.app` with an Applications shortcut.
+The final file is written to `dist/Codex-Bar-0.0.4.dmg` and contains `Codex Bar.app` with an Applications shortcut.
 
 ## Automatic Updates
 
@@ -93,7 +94,7 @@ Codex Bar uses Sparkle to check and install updates from the repository's `appca
 For future releases, update the appcast before creating the tag:
 
 ```bash
-scripts/update-appcast.sh 0.0.4 4
+scripts/update-appcast.sh 0.0.5 5
 ```
 
 The Sparkle EdDSA private key remains in the publisher's macOS Keychain and must never be committed. Users must manually install the first release that includes the updater; subsequent releases can update in place.

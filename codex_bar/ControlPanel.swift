@@ -1,5 +1,6 @@
 import AppKit
 import Combine
+import ServiceManagement
 import Sparkle
 import SwiftUI
 import UserNotifications
@@ -10,6 +11,9 @@ final class AppController: NSObject, NSApplicationDelegate, ObservableObject, NS
     let updaterController = SPUStandardUpdaterController(startingUpdater: true, updaterDelegate: nil, userDriverDelegate: nil)
     @Published var menuEnabled = false
     @Published var settingsSelected = false
+    @Published private(set) var launchAtLoginEnabled = false
+    @Published private(set) var launchAtLoginRequiresApproval = false
+    @Published var launchAtLoginError: String?
     private var panel: NSWindow?
     private var statusItem: NSStatusItem?
     private let popover = NSPopover()
@@ -48,6 +52,7 @@ final class AppController: NSObject, NSApplicationDelegate, ObservableObject, NS
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         UNUserNotificationCenter.current().delegate = self
+        refreshLaunchAtLoginStatus()
         showPanel()
         Task { await store.loadIfNeeded() }
         store.scheduleRefresh()
@@ -81,6 +86,43 @@ final class AppController: NSObject, NSApplicationDelegate, ObservableObject, NS
         updaterController.checkForUpdates(nil)
     }
 
+    func setLaunchAtLogin(_ enabled: Bool) {
+        let service = SMAppService.mainApp
+        do {
+            if enabled {
+                try service.register()
+            } else {
+                try service.unregister()
+            }
+            refreshLaunchAtLoginStatus()
+        } catch {
+            refreshLaunchAtLoginStatus()
+            launchAtLoginError = error.localizedDescription
+        }
+    }
+
+    func refreshLaunchAtLoginStatus() {
+        switch SMAppService.mainApp.status {
+        case .enabled:
+            launchAtLoginEnabled = true
+            launchAtLoginRequiresApproval = false
+        case .requiresApproval:
+            launchAtLoginEnabled = true
+            launchAtLoginRequiresApproval = true
+        case .notRegistered, .notFound:
+            launchAtLoginEnabled = false
+            launchAtLoginRequiresApproval = false
+        @unknown default:
+            launchAtLoginEnabled = false
+            launchAtLoginRequiresApproval = false
+        }
+    }
+
+    func openLoginItemsSettings() {
+        guard let url = URL(string: "x-apple.systempreferences:com.apple.LoginItems-Settings.extension") else { return }
+        NSWorkspace.shared.open(url)
+    }
+
     func windowWillClose(_ notification: Notification) { guard installMenu() else { return }; menuEnabled = true }
 
     func userNotificationCenter(_ center: UNUserNotificationCenter, willPresent notification: UNNotification, withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void) { completionHandler([.banner, .sound]) }
@@ -105,6 +147,15 @@ struct ControlPanel: View {
         }
         .frame(width: 500, height: 600)
         .background(Color(nsColor: .windowBackgroundColor))
+        .onAppear { controller.refreshLaunchAtLoginStatus() }
+        .alert("无法修改登录项", isPresented: Binding(
+            get: { controller.launchAtLoginError != nil },
+            set: { if !$0 { controller.launchAtLoginError = nil } }
+        )) {
+            Button("好", role: .cancel) { controller.launchAtLoginError = nil }
+        } message: {
+            Text(controller.launchAtLoginError ?? L10n.text("未知错误"))
+        }
     }
 
     private var panelHeader: some View {
@@ -215,6 +266,24 @@ struct ControlPanel: View {
                         Button { controller.checkForUpdates() } label: {
                             Label("检查更新…", systemImage: "arrow.clockwise")
                         }
+                    }
+                }
+                SettingsGroup(title: L10n.text("登录时启动"), symbol: "power") {
+                    Toggle(L10n.text("登录 Mac 时自动打开 Codex Bar"), isOn: Binding(
+                        get: { controller.launchAtLoginEnabled },
+                        set: { controller.setLaunchAtLogin($0) }
+                    ))
+                    if controller.launchAtLoginRequiresApproval {
+                        HStack(alignment: .firstTextBaseline) {
+                            Text("需要在系统设置的“登录项”中允许 Codex Bar。")
+                                .font(.caption).foregroundStyle(.orange)
+                            Spacer()
+                            Button("打开系统设置") { controller.openLoginItemsSettings() }
+                                .buttonStyle(.borderless)
+                        }
+                    } else {
+                        Text("开启后，Codex Bar 会在你登录 Mac 时自动运行。")
+                            .font(.caption).foregroundStyle(.secondary)
                     }
                 }
                 HStack {

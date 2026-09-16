@@ -19,6 +19,7 @@ Codex Bar 是一个轻量的 macOS 原生工具，用于在菜单栏查看 Codex
 - 启动面板展示连接状态并提供重试
 - 支持选择 Codex 登录文件，默认读取 `~/.codex/auth.json`
 - 支持 5、15、30 分钟自动刷新
+- 支持配置登录 Mac 时自动启动
 - 自动检测额度重置，并可分别配置 5 小时与每周系统通知
 - 设置保存在本机 `UserDefaults`
 - 不保存、不展示登录令牌
@@ -74,18 +75,18 @@ Codex Bar 在本机只读解析 Codex 登录文件，并将访问令牌作为 Au
 3. 构建、签名、公证并生成 DMG：
 
    ```bash
-   NOTARY_PROFILE=codex-bar-notary scripts/build-dmg.sh 0.0.3
+   NOTARY_PROFILE=codex-bar-notary scripts/build-dmg.sh 0.0.4
    ```
 
 4. 推送版本标签并发布到 GitHub Releases：
 
    ```bash
-   git tag v0.0.3
-   git push origin v0.0.3
-   scripts/publish-release.sh 0.0.3
+   git tag v0.0.4
+   git push origin v0.0.4
+   scripts/publish-release.sh 0.0.4
    ```
 
-最终文件位于 `dist/Codex-Bar-0.0.3.dmg`，其中包含可拖入“应用程序”文件夹的 `Codex Bar.app`。
+最终文件位于 `dist/Codex-Bar-0.0.4.dmg`，其中包含可拖入“应用程序”文件夹的 `Codex Bar.app`。
 
 ## 自动更新
 
@@ -94,7 +95,7 @@ Codex Bar 使用 Sparkle 从仓库中的 `appcast.xml` 检查并安装更新。�
 发布后续版本时，在创建标签前更新 appcast：
 
 ```bash
-scripts/update-appcast.sh 0.0.4 4
+scripts/update-appcast.sh 0.0.5 5
 ```
 
 Sparkle 的 EdDSA 私钥只保存在发布者的 macOS 钥匙串中，不应提交到仓库。首次包含更新器的版本仍需要用户手动安装一次，后续版本即可在应用内完成更新。
