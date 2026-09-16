@@ -91,11 +91,15 @@ The final file is written to `dist/Codex-Bar-0.0.4.dmg` and contains `Codex Bar.
 
 Codex Bar uses Sparkle to check and install updates from the repository's `appcast.xml`. It checks automatically once per day by default, and users can also choose “Check for Updates” from Settings or the menu popover.
 
-For future releases, update the appcast before creating the tag:
+Every release must first include a Markdown release-notes file, such as `release-notes/0.0.5.md`. Start with the shipped changes, then rewrite them as user-facing New Features, Improvements, and Bug Fixes. The same notes are shown in both the in-app update dialog and the GitHub Release.
+
+After creating the notes, update the appcast before creating the tag:
 
 ```bash
 scripts/update-appcast.sh 0.0.5 5
 ```
+
+`scripts/publish-release.sh` automatically reads the same versioned notes file and stops if it is missing, preventing releases without an update summary.
 
 The Sparkle EdDSA private key remains in the publisher's macOS Keychain and must never be committed. Users must manually install the first release that includes the updater; subsequent releases can update in place.
 

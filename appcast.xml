@@ -11,9 +11,16 @@
       <sparkle:version>4</sparkle:version>
       <sparkle:shortVersionString>0.0.4</sparkle:shortVersionString>
       <sparkle:minimumSystemVersion>13.0</sparkle:minimumSystemVersion>
-      <pubDate>Wed, 16 Sep 2026 05:07:46 +0000</pubDate>
+      <pubDate>Wed, 16 Sep 2026 05:11:58 +0000</pubDate>
       <description><![CDATA[
-        <p>See the GitHub release page for details about this update.</p>
+        <h3>新功能</h3>
+        <ul>
+        <li><strong>登录时自动启动</strong>：现在可以在设置中开启“登录时启动”。登录 Mac 后，Codex Bar 会自动运行，无需每次手动打开；如果系统需要额外授权，应用会引导你前往“登录项”设置。</li>
+        </ul>
+        <h3>What&#x27;s New</h3>
+        <ul>
+        <li><strong>Launch at Login</strong>: You can now make Codex Bar start automatically whenever you log in to your Mac. If macOS requires approval, the app will guide you directly to Login Items in System Settings.</li>
+        </ul>
       ]]></description>
       <enclosure
         url="https://github.com/hnwangjy/codex-bar/releases/download/v0.0.4/Codex-Bar-0.0.4.dmg"

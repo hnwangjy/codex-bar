@@ -92,11 +92,15 @@ Codex Bar 在本机只读解析 Codex 登录文件，并将访问令牌作为 Au
 
 Codex Bar 使用 Sparkle 从仓库中的 `appcast.xml` 检查并安装更新。应用默认每天自动检查一次，也可以在设置页或菜单弹窗中手动选择“检查更新”。
 
-发布后续版本时，在创建标签前更新 appcast：
+每个版本都必须先创建一份 Markdown 更新说明，例如 `release-notes/0.0.5.md`。可以先写功能要点，再整理为面向用户的“新功能 / 改进 / 问题修复”发布文案。更新说明会同时用于应用内更新弹窗和 GitHub Release。
+
+创建更新说明后，在创建标签前更新 appcast：
 
 ```bash
 scripts/update-appcast.sh 0.0.5 5
 ```
+
+`scripts/publish-release.sh` 会自动读取同一个版本的更新说明文件；缺少说明时，发布脚本会停止，避免生成没有更新内容的版本。
 
 Sparkle 的 EdDSA 私钥只保存在发布者的 macOS 钥匙串中，不应提交到仓库。首次包含更新器的版本仍需要用户手动安装一次，后续版本即可在应用内完成更新。
 
