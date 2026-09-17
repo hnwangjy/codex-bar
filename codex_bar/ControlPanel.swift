@@ -30,7 +30,7 @@ final class AppController: NSObject, NSApplicationDelegate, ObservableObject, NS
         button.action = #selector(togglePopover)
         statusItem = item
         popover.behavior = .transient
-        popover.contentSize = NSSize(width: 336, height: 330)
+        popover.contentSize = NSSize(width: 336, height: 365)
         popover.contentViewController = NSHostingController(rootView: ContentView(
             store: store,
             openPanel: { [weak self] in self?.showPanel() },
@@ -189,6 +189,7 @@ struct ControlPanel: View {
                 } else if store.isLoading {
                     ProgressView("正在读取 Codex 额度…").frame(maxWidth: .infinity, minHeight: 180)
                 } else { emptyState }
+                TokenUsageCard(store: store)
                 statusCard
                 Text("启动后，点击菜单栏图标查看额度。面板和设置始终可以从菜单栏打开。")
                     .font(.caption).foregroundStyle(.tertiary).frame(maxWidth: .infinity, alignment: .leading)
@@ -244,6 +245,38 @@ struct ControlPanel: View {
                 SettingsGroup(title: L10n.text("菜单栏显示"), symbol: "menubar.rectangle") {
                     Toggle("5 小时额度", isOn: $store.showFiveHourInMenuBar).disabled(store.showFiveHourInMenuBar && !store.showWeeklyInMenuBar)
                     Toggle("每周额度", isOn: $store.showWeeklyInMenuBar).disabled(store.showWeeklyInMenuBar && !store.showFiveHourInMenuBar)
+                }
+                SettingsGroup(title: L10n.text("Token 费用估算"), symbol: "banknote") {
+                    Picker(L10n.text("金额显示"), selection: $store.costDisplayCurrency) {
+                        ForEach(CostDisplayCurrency.allCases) { Text($0.title).tag($0) }
+                    }
+                    .pickerStyle(.segmented)
+                    .labelsHidden()
+                    HStack {
+                        Text(L10n.text("美元兑人民币"))
+                        Spacer()
+                        TextField("6.71", value: $store.usdToCNY, format: .number.precision(.fractionLength(2...4)))
+                            .textFieldStyle(.roundedBorder)
+                            .frame(width: 86)
+                        Button { Task { await store.refreshExchangeRate() } } label: {
+                            Image(systemName: "arrow.clockwise")
+                                .rotationEffect(.degrees(store.isRefreshingExchangeRate ? 360 : 0))
+                                .animation(store.isRefreshingExchangeRate ? .linear(duration: 0.9).repeatForever(autoreverses: false) : .default, value: store.isRefreshingExchangeRate)
+                        }
+                        .buttonStyle(.borderless)
+                        .disabled(store.isRefreshingExchangeRate)
+                        .help(L10n.text("刷新当前汇率"))
+                    }
+                    if let error = store.exchangeRateError {
+                        Label(error, systemImage: "exclamationmark.triangle").font(.caption).foregroundStyle(.orange)
+                    } else if let updatedAt = store.exchangeRateUpdatedAt {
+                        Text(L10n.format("汇率更新于 %@ · 数据日期 %@", updatedAt.formatted(date: .omitted, time: .shortened), store.exchangeRateSourceDate ?? "—"))
+                            .font(.caption).foregroundStyle(.secondary)
+                    }
+                    Text("汇率用于把官方美元 Token 单价换算为人民币，可按当天汇率自行调整。")
+                        .font(.caption).foregroundStyle(.secondary)
+                    Text("费用是 API 等价估算，不是 ChatGPT Plus 的实际账单。所有统计仅在本机读取 Codex 会话日志。")
+                        .font(.caption).foregroundStyle(.secondary)
                 }
                 SettingsGroup(title: L10n.text("额度重置提醒"), symbol: "bell") {
                     Toggle("5 小时额度重置", isOn: $store.notifyFiveHourReset)
@@ -314,6 +347,92 @@ struct ControlPanel: View {
     private var appVersion: String {
         Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "—"
     }
+}
+
+private struct TokenUsageCard: View {
+    @ObservedObject var store: UsageStore
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 14) {
+            HStack {
+                Label(L10n.text("Token 用量"), systemImage: "number.square").font(.headline)
+                Spacer()
+                if store.isLoadingTokenUsage { ProgressView().controlSize(.mini) }
+                Button { Task { await store.refreshTokenUsage() } } label: { Image(systemName: "arrow.clockwise") }
+                    .buttonStyle(.borderless).disabled(store.isLoadingTokenUsage).help(L10n.text("刷新 Token 用量"))
+            }
+
+            Picker(L10n.text("统计周期"), selection: $store.tokenUsagePeriod) {
+                ForEach(TokenUsagePeriod.allCases) { Text($0.title).tag($0) }
+            }.pickerStyle(.segmented).labelsHidden()
+
+            if let summary = store.tokenUsage {
+                HStack(alignment: .firstTextBaseline) {
+                    VStack(alignment: .leading, spacing: 3) {
+                        Text(formatTokens(summary.counts.total)).font(.system(size: 27, weight: .semibold, design: .rounded).monospacedDigit())
+                        Text(L10n.format("%d 个会话", summary.sessions)).font(.caption).foregroundStyle(.secondary)
+                    }
+                    Spacer()
+                    VStack(alignment: .trailing, spacing: 3) {
+                        Text(store.formattedCost(usd: summary.estimatedUSD)).font(.system(size: 27, weight: .semibold, design: .rounded).monospacedDigit())
+                        Text(L10n.text("API 等价估算")).font(.caption).foregroundStyle(.secondary)
+                    }
+                }
+                HStack(spacing: 8) {
+                    tokenMetric(L10n.text("输入"), summary.counts.input)
+                    tokenMetric(L10n.text("缓存输入"), summary.counts.cachedInput)
+                    tokenMetric(L10n.text("输出"), summary.counts.output)
+                    tokenMetric(L10n.text("推理"), summary.counts.reasoningOutput)
+                }
+                if !summary.models.isEmpty {
+                    Divider()
+                    ForEach(summary.models.prefix(6)) { model in
+                        HStack(spacing: 8) {
+                            Image(systemName: "cpu").foregroundStyle(.secondary).frame(width: 16)
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text(model.model).font(.callout.weight(.medium)).lineLimit(1)
+                                Text(formatTokens(model.counts.total)).font(.caption).foregroundStyle(.secondary)
+                            }
+                            Spacer()
+                            if let usd = model.estimatedUSD {
+                                Text(store.formattedCost(usd: usd)).font(.callout.monospacedDigit())
+                            } else {
+                                Text(L10n.text("未计价")).font(.caption).foregroundStyle(.orange)
+                            }
+                        }
+                    }
+                }
+                if summary.unpricedTokens > 0 {
+                    Label(L10n.format("%@ Token 暂无官方匹配单价，未计入费用。", formatTokens(summary.unpricedTokens)), systemImage: "exclamationmark.triangle")
+                        .font(.caption).foregroundStyle(.orange)
+                }
+                Text(L10n.text("本地日志统计 · 费用不是实际扣款")).font(.caption2).foregroundStyle(.tertiary)
+            } else {
+                Text(L10n.text("正在扫描本机 Codex 会话日志…"))
+                    .font(.callout).foregroundStyle(.secondary).frame(maxWidth: .infinity, minHeight: 80)
+            }
+        }
+        .padding(16)
+        .background(.quaternary.opacity(0.4), in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+        .overlay { RoundedRectangle(cornerRadius: 16, style: .continuous).stroke(.primary.opacity(0.06), lineWidth: 0.5) }
+    }
+
+    private func tokenMetric(_ title: String, _ value: Int64) -> some View {
+        VStack(alignment: .leading, spacing: 3) {
+            Text(title).font(.caption2).foregroundStyle(.secondary).lineLimit(1)
+            Text(formatTokens(value)).font(.caption.weight(.medium).monospacedDigit()).lineLimit(1)
+        }
+        .padding(.horizontal, 8).padding(.vertical, 7).frame(maxWidth: .infinity, alignment: .leading)
+        .background(.background.opacity(0.55), in: RoundedRectangle(cornerRadius: 8, style: .continuous))
+    }
+
+    private func formatTokens(_ value: Int64) -> String {
+        if value >= 1_000_000_000 { return String(format: "%.2fB", Double(value) / 1_000_000_000) }
+        if value >= 1_000_000 { return String(format: "%.2fM", Double(value) / 1_000_000) }
+        if value >= 1_000 { return String(format: "%.1fK", Double(value) / 1_000) }
+        return value.formatted()
+    }
+
 }
 
 private struct PanelQuotaCard: View {

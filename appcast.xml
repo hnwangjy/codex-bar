@@ -6,26 +6,38 @@
     <description>Codex Bar stable releases</description>
     <language>en</language>
     <item>
-      <title>Codex Bar 0.0.4</title>
-      <link>https://github.com/hnwangjy/codex-bar/releases/tag/v0.0.4</link>
-      <sparkle:version>4</sparkle:version>
-      <sparkle:shortVersionString>0.0.4</sparkle:shortVersionString>
+      <title>Codex Bar 0.0.5</title>
+      <link>https://github.com/hnwangjy/codex-bar/releases/tag/v0.0.5</link>
+      <sparkle:version>5</sparkle:version>
+      <sparkle:shortVersionString>0.0.5</sparkle:shortVersionString>
       <sparkle:minimumSystemVersion>13.0</sparkle:minimumSystemVersion>
-      <pubDate>Wed, 16 Sep 2026 05:11:58 +0000</pubDate>
+      <pubDate>Thu, 17 Sep 2026 13:47:30 +0000</pubDate>
       <description><![CDATA[
         <h3>新功能</h3>
         <ul>
-        <li><strong>登录时自动启动</strong>：现在可以在设置中开启“登录时启动”。登录 Mac 后，Codex Bar 会自动运行，无需每次手动打开；如果系统需要额外授权，应用会引导你前往“登录项”设置。</li>
+        <li><strong>本地 Token 用量统计</strong>：现在可以查看今天、近 7 天或近 30 天的 Token 用量，并按模型了解输入、缓存输入、输出和推理 Token 的构成。统计仅在本机读取 Codex 会话日志，不分析或上传对话内容。</li>
+        <li><strong>费用估算</strong>：根据官方 Token 单价展示 API 等价费用，并在主面板和菜单栏弹窗中快速查看。没有可靠单价的模型会明确标记为“未计价”，不会混入总额。</li>
+        <li><strong>人民币与美元切换</strong>：费用支持人民币或美元显示。汇率可以手动刷新，并会在每天本地时间 08:00 自动保存最新可用汇率；英语系统首次使用时默认显示美元。</li>
+        </ul>
+        <h3>改进</h3>
+        <ul>
+        <li><strong>更清晰的用量面板</strong>：增加统计周期切换、模型费用明细和紧凑的菜单栏费用卡片，让额度与 Token 消耗可以在同一处查看。</li>
         </ul>
         <h3>What&#x27;s New</h3>
         <ul>
-        <li><strong>Launch at Login</strong>: You can now make Codex Bar start automatically whenever you log in to your Mac. If macOS requires approval, the app will guide you directly to Login Items in System Settings.</li>
+        <li><strong>Local token usage</strong>: View token usage for today, the last 7 days, or the last 30 days, including per-model input, cached input, output, and reasoning totals. All analysis stays on your Mac and does not read or upload conversation content.</li>
+        <li><strong>Cost estimates</strong>: See API-equivalent costs based on official token prices in both the main panel and menu popover. Models without a reliable price are clearly marked as unpriced and excluded from the total.</li>
+        <li><strong>CNY and USD display</strong>: Switch costs between CNY and USD, refresh the exchange rate manually, or let Codex Bar save the latest available rate automatically at 08:00 local time each day. English systems default to USD on first use.</li>
+        </ul>
+        <h3>Improvements</h3>
+        <ul>
+        <li><strong>Clearer usage overview</strong>: Period controls, model-level cost details, and a compact menu-bar cost card bring quota and token usage into one view.</li>
         </ul>
       ]]></description>
       <enclosure
-        url="https://github.com/hnwangjy/codex-bar/releases/download/v0.0.4/Codex-Bar-0.0.4.dmg"
-        sparkle:edSignature="WOvlG1ooXZy8C+UrjIHvu6PYw8Gyj1QTlc9qh35ER/GK0eYYNZYNPLpC0sweArFz7c58OIa4so4LgRb9E3SNAg=="
-        length="4440601"
+        url="https://github.com/hnwangjy/codex-bar/releases/download/v0.0.5/Codex-Bar-0.0.5.dmg"
+        sparkle:edSignature="8iLaz0oYoV5cBznQZ8O3wsJ4NsN9NGzJy1HreYuU88wrfZLCRgeD3xMudNoX4LS5UxO9tC4CaFN+zzRXmtW7DQ=="
+        length="4618389"
         type="application/octet-stream" />
     </item>
   </channel>

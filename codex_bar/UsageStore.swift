@@ -9,8 +9,17 @@ final class UsageStore: ObservableObject {
     @Published private(set) var errorRequiresLogin = false
     @Published private(set) var updatedAt: Date?
     @Published private(set) var notificationAuthorization = L10n.text("正在检查…")
+    @Published private(set) var tokenUsage: TokenUsageSummary?
+    @Published private(set) var tokenUsageError: String?
+    @Published private(set) var isLoadingTokenUsage = false
+    @Published private(set) var isRefreshingExchangeRate = false
+    @Published private(set) var exchangeRateError: String?
+    @Published private(set) var exchangeRateUpdatedAt = UserDefaults.standard.object(forKey: "exchangeRateUpdatedAt") as? Date
+    @Published private(set) var exchangeRateSourceDate = UserDefaults.standard.string(forKey: "exchangeRateSourceDate")
 
     private let service = CodexUsageService()
+    private let tokenService = TokenUsageService()
+    private let exchangeRateService = ExchangeRateService()
     private let notifications = ResetNotificationService()
     private var hasLoaded = false
     @Published var authPath = UserDefaults.standard.string(forKey: "authPath") ?? "~/.codex/auth.json" {
@@ -43,7 +52,27 @@ final class UsageStore: ObservableObject {
             Task { await updateNotificationAuthorization(requestIfNeeded: notifyWeeklyReset) }
         }
     }
+    @Published var tokenUsagePeriod = TokenUsagePeriod(rawValue: UserDefaults.standard.string(forKey: "tokenUsagePeriod") ?? "") ?? .sevenDays {
+        didSet {
+            UserDefaults.standard.set(tokenUsagePeriod.rawValue, forKey: "tokenUsagePeriod")
+            Task { await refreshTokenUsage() }
+        }
+    }
+    @Published var usdToCNY = UserDefaults.standard.object(forKey: "usdToCNY") as? Double ?? 6.71 {
+        didSet {
+            let clamped = min(20, max(0.1, usdToCNY))
+            if clamped != usdToCNY {
+                usdToCNY = clamped
+                return
+            }
+            UserDefaults.standard.set(clamped, forKey: "usdToCNY")
+        }
+    }
+    @Published var costDisplayCurrency = UsageStore.initialCostDisplayCurrency() {
+        didSet { UserDefaults.standard.set(costDisplayCurrency.rawValue, forKey: "costDisplayCurrency") }
+    }
     private var timer: Timer?
+    private var exchangeRateTimer: Timer?
     private var lastFiveHourNotificationAt: Date? {
         get { UserDefaults.standard.object(forKey: "lastFiveHourResetNotificationAt") as? Date }
         set { UserDefaults.standard.set(newValue, forKey: "lastFiveHourResetNotificationAt") }
@@ -105,7 +134,76 @@ final class UsageStore: ObservableObject {
             await notifications.requestAuthorization()
         }
         notificationAuthorization = await notifications.authorizationDescription()
+        scheduleExchangeRateRefresh()
+        await refreshExchangeRateIfNeeded()
         await refresh()
+    }
+
+    private static func initialCostDisplayCurrency() -> CostDisplayCurrency {
+        let defaults = UserDefaults.standard
+        return defaultCostDisplayCurrency(
+            savedValue: defaults.string(forKey: "costDisplayCurrency"),
+            preferredLanguage: Locale.preferredLanguages.first ?? ""
+        )
+    }
+
+    static func defaultCostDisplayCurrency(
+        savedValue: String?,
+        preferredLanguage: String
+    ) -> CostDisplayCurrency {
+        if let savedValue, let currency = CostDisplayCurrency(rawValue: savedValue) {
+            return currency
+        }
+        return preferredLanguage.lowercased().hasPrefix("en") ? .usd : .cny
+    }
+
+    func formattedCost(usd: Double) -> String {
+        let amount = costDisplayCurrency == .usd ? usd : usd * usdToCNY
+        return amount.formatted(.currency(code: costDisplayCurrency.currencyCode).precision(.fractionLength(2)))
+    }
+
+    func refreshExchangeRate() async {
+        guard !isRefreshingExchangeRate else { return }
+        isRefreshingExchangeRate = true
+        defer { isRefreshingExchangeRate = false }
+        do {
+            let result = try await exchangeRateService.fetchUSDtoCNY()
+            usdToCNY = result.rate
+            exchangeRateUpdatedAt = Date()
+            exchangeRateSourceDate = result.sourceDate
+            exchangeRateError = nil
+            UserDefaults.standard.set(exchangeRateUpdatedAt, forKey: "exchangeRateUpdatedAt")
+            UserDefaults.standard.set(exchangeRateSourceDate, forKey: "exchangeRateSourceDate")
+        } catch {
+            exchangeRateError = (error as? LocalizedError)?.errorDescription ?? error.localizedDescription
+        }
+        scheduleExchangeRateRefresh()
+    }
+
+    private func refreshExchangeRateIfNeeded(now: Date = Date()) async {
+        let calendar = Calendar.current
+        let todayAtEight = calendar.date(bySettingHour: 8, minute: 0, second: 0, of: now) ?? now
+        guard now >= todayAtEight,
+              exchangeRateUpdatedAt == nil || exchangeRateUpdatedAt! < todayAtEight else { return }
+        await refreshExchangeRate()
+    }
+
+    private func scheduleExchangeRateRefresh(now: Date = Date()) {
+        exchangeRateTimer?.invalidate()
+        let next = Self.nextExchangeRateRefresh(after: now)
+        exchangeRateTimer = Timer.scheduledTimer(withTimeInterval: max(1, next.timeIntervalSince(now)), repeats: false) { [weak self] _ in
+            Task { @MainActor in await self?.refreshExchangeRate() }
+        }
+    }
+
+    static func nextExchangeRateRefresh(
+        after now: Date,
+        calendar: Calendar = .current
+    ) -> Date {
+        let todayAtEight = calendar.date(bySettingHour: 8, minute: 0, second: 0, of: now) ?? now
+        if now < todayAtEight { return todayAtEight }
+        return calendar.date(byAdding: .day, value: 1, to: todayAtEight)
+            ?? now.addingTimeInterval(86_400)
     }
 
     func sendTestNotification() async {
@@ -119,6 +217,7 @@ final class UsageStore: ObservableObject {
     }
 
     func refresh() async {
+        async let tokenRefresh: Void = refreshTokenUsage()
         guard !isLoading else { return }
         isLoading = true
         defer { isLoading = false }
@@ -147,6 +246,21 @@ final class UsageStore: ObservableObject {
                 errorRequiresLogin = false
             }
         }
+        await tokenRefresh
+    }
+
+    func refreshTokenUsage() async {
+        guard !isLoadingTokenUsage else { return }
+        isLoadingTokenUsage = true
+        let requestedPeriod = tokenUsagePeriod
+        let result = await tokenService.scan(period: requestedPeriod)
+        guard requestedPeriod == tokenUsagePeriod else {
+            isLoadingTokenUsage = false
+            return
+        }
+        tokenUsage = result
+        tokenUsageError = nil
+        isLoadingTokenUsage = false
     }
 
     private func notifyForResets(previous: CodexUsage, current: CodexUsage) async {
@@ -195,6 +309,18 @@ final class UsageStore: ObservableObject {
             plan: "plus"
         )
         store.updatedAt = Date()
+        store.tokenUsage = TokenUsageSummary(
+            period: .sevenDays,
+            counts: TokenCounts(input: 1_840_000, cachedInput: 1_250_000, output: 126_000, reasoningOutput: 44_000),
+            estimatedUSD: 3.82,
+            unpricedTokens: 0,
+            sessions: 18,
+            models: [
+                ModelTokenUsage(model: "gpt-5.6-terra", counts: TokenCounts(input: 1_300_000, cachedInput: 900_000, output: 91_000, reasoningOutput: 31_000), estimatedUSD: 2.07),
+                ModelTokenUsage(model: "gpt-5.6-sol", counts: TokenCounts(input: 540_000, cachedInput: 350_000, output: 35_000, reasoningOutput: 13_000), estimatedUSD: 1.75)
+            ],
+            updatedAt: Date()
+        )
         store.hasLoaded = true
         return store
     }

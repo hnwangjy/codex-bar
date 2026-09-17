@@ -16,6 +16,13 @@ struct ContentView: View {
                     VStack(spacing: 10) {
                         UsageCard(title: L10n.text("5 小时"), symbol: "clock", window: usage.fiveHour)
                         UsageCard(title: L10n.text("每周"), symbol: "calendar", window: usage.weekly)
+                        if let tokens = store.tokenUsage {
+                            CompactCostRow(
+                                period: tokens.period.title,
+                                tokens: formatTokens(tokens.counts.total),
+                                amount: store.formattedCost(usd: tokens.estimatedUSD)
+                            )
+                        }
                     }
                 } else { errorView }
             }.padding(.horizontal, 12)
@@ -97,6 +104,41 @@ struct ContentView: View {
     private var updatedLabel: String {
         guard let updatedAt = store.updatedAt else { return L10n.text("刷新") }
         return L10n.format("更新于 %@", updatedAt.formatted(date: .omitted, time: .shortened))
+    }
+
+    private func formatTokens(_ value: Int64) -> String {
+        if value >= 1_000_000_000 { return String(format: "%.2fB Token", Double(value) / 1_000_000_000) }
+        if value >= 1_000_000 { return String(format: "%.2fM Token", Double(value) / 1_000_000) }
+        if value >= 1_000 { return String(format: "%.1fK Token", Double(value) / 1_000) }
+        return "\(value) Token"
+    }
+
+}
+
+private struct CompactCostRow: View {
+    let period: String
+    let tokens: String
+    let amount: String
+
+    var body: some View {
+        HStack(spacing: 11) {
+            Image(systemName: "yensign.circle.fill")
+                .font(.system(size: 19, weight: .medium))
+                .foregroundStyle(.tint)
+                .frame(width: 34, height: 34)
+                .background(.tint.opacity(0.1), in: RoundedRectangle(cornerRadius: 9, style: .continuous))
+            VStack(alignment: .leading, spacing: 2) {
+                Text(L10n.text("估算费用")).font(.callout.weight(.medium))
+                Text("\(period) · \(tokens)").font(.caption2).foregroundStyle(.secondary)
+            }
+            Spacer()
+            Text(amount)
+                .font(.system(size: 17, weight: .semibold, design: .rounded).monospacedDigit())
+        }
+        .padding(.horizontal, 12).frame(height: 54)
+        .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 13, style: .continuous))
+        .overlay { RoundedRectangle(cornerRadius: 13, style: .continuous).stroke(.primary.opacity(0.07), lineWidth: 0.5) }
+        .accessibilityElement(children: .combine)
     }
 }
 

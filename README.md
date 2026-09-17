@@ -13,6 +13,9 @@ Codex Bar 是一个轻量的 macOS 原生工具，用于在菜单栏查看 Codex
 ## 功能
 
 - 显示 Codex 5 小时与每周剩余额度、重置时间和套餐类型
+- 从本机 Codex 会话日志统计今天、近 7 天或近 30 天的 Token 用量
+- 按模型展示输入、缓存输入、输出与推理 Token，并按官方 API 单价估算人民币等价值
+- 支持人民币/美元费用显示；人民币汇率可手动刷新，并在每天本地时间 08:00 自动更新
 - 菜单栏显示当前剩余额度百分比
 - 可选择在菜单栏显示 5 小时、每周或同时显示两种剩余额度
 - 根据 macOS 系统语言自动显示简体中文或英文
@@ -55,7 +58,9 @@ codex login
 
 ## 隐私与接口说明
 
-Codex Bar 在本机只读解析 Codex 登录文件，并将访问令牌作为 Authorization Header 发送到 ChatGPT 官方域名的额度接口。应用不包含遥测、代理服务，也不会把令牌保存到自己的配置中。
+Codex Bar 在本机只读解析 Codex 登录文件，并将访问令牌作为 Authorization Header 发送到 ChatGPT 官方域名的额度接口。Token 统计只读取 `~/.codex/sessions` 与 `~/.codex/archived_sessions` 中的本机会话计数，不读取对话正文，也不上传统计结果。应用不包含遥测、代理服务，也不会把令牌保存到自己的配置中。
+
+人民币金额使用 OpenAI 官方 Token 单价与设置中的美元兑人民币汇率计算，仅表示相同 Token 按 API 计费时的等价值，并不是 ChatGPT Plus/Pro 的实际账单或扣款金额。汇率来自 [Frankfurter](https://frankfurter.dev/) 聚合的央行与官方参考数据，每天 08:00 自动获取最新可用工作日汇率。没有可靠官方单价的模型会标记为“未计价”，不会按 0 元混入总额。
 
 额度接口目前不是公开、稳定的开发者 API，服务地址或返回结构将来可能变化。本项目与 OpenAI 没有隶属或官方合作关系。
 
@@ -75,18 +80,18 @@ Codex Bar 在本机只读解析 Codex 登录文件，并将访问令牌作为 Au
 3. 构建、签名、公证并生成 DMG：
 
    ```bash
-   NOTARY_PROFILE=codex-bar-notary scripts/build-dmg.sh 0.0.4
+   NOTARY_PROFILE=codex-bar-notary scripts/build-dmg.sh 0.0.5
    ```
 
 4. 推送版本标签并发布到 GitHub Releases：
 
    ```bash
-   git tag v0.0.4
-   git push origin v0.0.4
-   scripts/publish-release.sh 0.0.4
+   git tag v0.0.5
+   git push origin v0.0.5
+   scripts/publish-release.sh 0.0.5
    ```
 
-最终文件位于 `dist/Codex-Bar-0.0.4.dmg`，其中包含可拖入“应用程序”文件夹的 `Codex Bar.app`。
+最终文件位于 `dist/Codex-Bar-0.0.5.dmg`，其中包含可拖入“应用程序”文件夹的 `Codex Bar.app`。
 
 ## 自动更新
 
@@ -105,6 +110,10 @@ scripts/update-appcast.sh 0.0.5 5
 Sparkle 的 EdDSA 私钥只保存在发布者的 macOS 钥匙串中，不应提交到仓库。首次包含更新器的版本仍需要用户手动安装一次，后续版本即可在应用内完成更新。
 
 ## 来源与致谢
+
+本地 Token 成本统计的产品思路参考了 Peter Steinberger 的 [CodexBar](https://github.com/steipete/CodexBar)（MIT License），包括读取已知本地会话目录、对累计 Token 快照计算增量，以及明确区分已计价和未计价模型。本项目针对自身轻量架构独立实现了扫描器与 SwiftUI 界面，没有引入其 SQLite 缓存与多服务商代码。
+
+Token 单价取自 OpenAI 官方 [ChatGPT Rate Card](https://help.openai.com/en/articles/20001415-chatgpt-rate-card-enterprise-token-based-pricing)，应用内注明了价格核对日期；单价变化后需要随版本更新。
 
 本项目的 Codex 认证文件读取方式、额度接口发现和窗口路由思路来源于 [Eric Park 的 CodexIsland](https://github.com/ericjypark/codex-island)。CodexIsland 以 [MIT License](https://github.com/ericjypark/codex-island/blob/main/LICENSE) 开源。
 
