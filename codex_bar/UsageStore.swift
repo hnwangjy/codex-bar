@@ -104,7 +104,7 @@ final class UsageStore: ObservableObject {
     ) -> String {
         var components: [String] = []
         if showFiveHour, let percent = usage?.fiveHour.remainingPercent {
-            components.append(L10n.format("5h %d%%", Int(percent.rounded())))
+            components.append(L10n.format("%d%%", Int(percent.rounded())))
         }
         if showWeekly, let percent = usage?.weekly.remainingPercent {
             components.append(L10n.format("W %d%%", Int(percent.rounded())))

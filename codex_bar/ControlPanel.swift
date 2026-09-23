@@ -39,9 +39,16 @@ final class AppController: NSObject, NSApplicationDelegate, ObservableObject, NS
         ))
         usageObservation = Publishers.CombineLatest3(store.$usage, store.$showFiveHourInMenuBar, store.$showWeeklyInMenuBar)
             .sink { [weak self] usage, fiveHour, weekly in
-                self?.statusItem?.button?.title = " \(UsageStore.menuBarTitle(usage: usage, showFiveHour: fiveHour, showWeekly: weekly))"
+                self?.setMenuBarTitle(UsageStore.menuBarTitle(usage: usage, showFiveHour: fiveHour, showWeekly: weekly))
             }
         return true
+    }
+
+    private func setMenuBarTitle(_ title: String) {
+        guard let button = statusItem?.button else { return }
+        let newTitle = " \(title)"
+        guard button.title != newTitle else { return }
+        button.title = newTitle
     }
 
     @objc private func togglePopover() {
@@ -183,8 +190,8 @@ struct ControlPanel: View {
             VStack(spacing: 14) {
                 if let usage = store.usage {
                     HStack(spacing: 12) {
-                        PanelQuotaCard(title: L10n.text("5 小时额度"), symbol: "clock", window: usage.fiveHour)
-                        PanelQuotaCard(title: L10n.text("每周额度"), symbol: "calendar", window: usage.weekly)
+                        PanelQuotaCard(title: L10n.text("5 小时"), symbol: "clock", window: usage.fiveHour)
+                        PanelQuotaCard(title: L10n.text("每周"), symbol: "calendar", window: usage.weekly)
                     }
                 } else if store.isLoading {
                     ProgressView("正在读取 Codex 额度…").frame(maxWidth: .infinity, minHeight: 180)
@@ -369,12 +376,12 @@ private struct TokenUsageCard: View {
             if let summary = store.tokenUsage {
                 HStack(alignment: .firstTextBaseline) {
                     VStack(alignment: .leading, spacing: 3) {
-                        Text(formatTokens(summary.counts.total)).font(.system(size: 27, weight: .semibold, design: .rounded).monospacedDigit())
-                        Text(L10n.format("%d 个会话", summary.sessions)).font(.caption).foregroundStyle(.secondary)
+                        RollingNumberText(formatTokens(summary.counts.total)).font(.system(size: 27, weight: .semibold, design: .rounded).monospacedDigit())
+                        BasicValueText(L10n.format("%d 个会话", summary.sessions)).font(.caption).foregroundStyle(.secondary)
                     }
                     Spacer()
                     VStack(alignment: .trailing, spacing: 3) {
-                        Text(store.formattedCost(usd: summary.estimatedUSD)).font(.system(size: 27, weight: .semibold, design: .rounded).monospacedDigit())
+                        RollingNumberText(store.formattedCost(usd: summary.estimatedUSD)).font(.system(size: 27, weight: .semibold, design: .rounded).monospacedDigit())
                         Text(L10n.text("API 等价估算")).font(.caption).foregroundStyle(.secondary)
                     }
                 }
@@ -391,11 +398,11 @@ private struct TokenUsageCard: View {
                             Image(systemName: "cpu").foregroundStyle(.secondary).frame(width: 16)
                             VStack(alignment: .leading, spacing: 2) {
                                 Text(model.model).font(.callout.weight(.medium)).lineLimit(1)
-                                Text(formatTokens(model.counts.total)).font(.caption).foregroundStyle(.secondary)
+                                BasicValueText(formatTokens(model.counts.total)).font(.caption).foregroundStyle(.secondary)
                             }
                             Spacer()
                             if let usd = model.estimatedUSD {
-                                Text(store.formattedCost(usd: usd)).font(.callout.monospacedDigit())
+                                RollingNumberText(store.formattedCost(usd: usd)).font(.callout.monospacedDigit())
                             } else {
                                 Text(L10n.text("未计价")).font(.caption).foregroundStyle(.orange)
                             }
@@ -420,7 +427,7 @@ private struct TokenUsageCard: View {
     private func tokenMetric(_ title: String, _ value: Int64) -> some View {
         VStack(alignment: .leading, spacing: 3) {
             Text(title).font(.caption2).foregroundStyle(.secondary).lineLimit(1)
-            Text(formatTokens(value)).font(.caption.weight(.medium).monospacedDigit()).lineLimit(1)
+            BasicValueText(formatTokens(value)).font(.caption.weight(.medium).monospacedDigit()).lineLimit(1)
         }
         .padding(.horizontal, 8).padding(.vertical, 7).frame(maxWidth: .infinity, alignment: .leading)
         .background(.background.opacity(0.55), in: RoundedRectangle(cornerRadius: 8, style: .continuous))
@@ -439,13 +446,23 @@ private struct PanelQuotaCard: View {
     let title: String; let symbol: String; let window: UsageWindow
     var body: some View {
         VStack(alignment: .leading, spacing: 13) {
-            HStack { Image(systemName: symbol).foregroundStyle(.tint); Text(title).font(.subheadline.weight(.medium)); Spacer() }
+            HStack(spacing: 7) {
+                Image(systemName: symbol).foregroundStyle(.tint)
+                Text(title)
+                    .font(.subheadline.weight(.medium))
+                    .lineLimit(1)
+                    .fixedSize(horizontal: true, vertical: false)
+                    .layoutPriority(1)
+                Spacer(minLength: 6)
+                if let resetAt = window.resetAt { ResetCountdownText(resetAt: resetAt) }
+            }
             if let percent = window.remainingPercent {
                 HStack(alignment: .firstTextBaseline, spacing: 2) {
-                    Text("\(Int(percent.rounded()))").font(.system(size: 36, weight: .semibold, design: .rounded).monospacedDigit())
+                    RollingNumberText("\(Int(percent.rounded()))").font(.system(size: 36, weight: .semibold, design: .rounded).monospacedDigit())
                     Text("%").font(.callout.weight(.semibold)).foregroundStyle(.secondary)
                 }
                 ProgressView(value: percent, total: 100).tint(tint)
+                    .animation(.easeInOut(duration: 0.22), value: percent)
             } else { Text("—").font(.largeTitle).foregroundStyle(.tertiary) }
             Text(window.resetAt.map { L10n.format("重置时间：%@", $0.formatted(date: .abbreviated, time: .shortened)) } ?? L10n.text("未提供"))
                 .font(.caption2).foregroundStyle(.secondary).lineLimit(1)

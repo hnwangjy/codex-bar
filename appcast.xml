@@ -6,38 +6,46 @@
     <description>Codex Bar stable releases</description>
     <language>en</language>
     <item>
-      <title>Codex Bar 0.0.5</title>
-      <link>https://github.com/hnwangjy/codex-bar/releases/tag/v0.0.5</link>
-      <sparkle:version>5</sparkle:version>
-      <sparkle:shortVersionString>0.0.5</sparkle:shortVersionString>
+      <title>Codex Bar 0.0.6</title>
+      <link>https://github.com/hnwangjy/codex-bar/releases/tag/v0.0.6</link>
+      <sparkle:version>6</sparkle:version>
+      <sparkle:shortVersionString>0.0.6</sparkle:shortVersionString>
       <sparkle:minimumSystemVersion>13.0</sparkle:minimumSystemVersion>
-      <pubDate>Thu, 17 Sep 2026 13:47:30 +0000</pubDate>
+      <pubDate>Wed, 23 Sep 2026 01:06:50 +0000</pubDate>
       <description><![CDATA[
         <h3>新功能</h3>
         <ul>
-        <li><strong>本地 Token 用量统计</strong>：现在可以查看今天、近 7 天或近 30 天的 Token 用量，并按模型了解输入、缓存输入、输出和推理 Token 的构成。统计仅在本机读取 Codex 会话日志，不分析或上传对话内容。</li>
-        <li><strong>费用估算</strong>：根据官方 Token 单价展示 API 等价费用，并在主面板和菜单栏弹窗中快速查看。没有可靠单价的模型会明确标记为“未计价”，不会混入总额。</li>
-        <li><strong>人民币与美元切换</strong>：费用支持人民币或美元显示。汇率可以手动刷新，并会在每天本地时间 08:00 自动保存最新可用汇率；英语系统首次使用时默认显示美元。</li>
+        <li><strong>额度重置倒计时</strong>：5 小时和每周额度现在会直接显示距离下次重置还有多久，查看额度时不再需要自行换算日期。</li>
         </ul>
         <h3>改进</h3>
         <ul>
-        <li><strong>更清晰的用量面板</strong>：增加统计周期切换、模型费用明细和紧凑的菜单栏费用卡片，让额度与 Token 消耗可以在同一处查看。</li>
+        <li><strong>关键数字滚动效果</strong>：额度百分比、总 Token 用量和费用金额在首次加载或发生变化时，会以更自然的里程表动画呈现；其他辅助数据保持轻量过渡，减少视觉疲劳。</li>
+        <li><strong>更简洁的菜单栏信息</strong>：5 小时额度只显示百分比，每周额度保留“周”标识，让双额度展示更紧凑、更容易扫读。</li>
+        <li><strong>更稳定的卡片布局</strong>：优化额度标题和倒计时的空间分配，避免“5 小时”等标题在较窄卡片中被截断。</li>
+        </ul>
+        <h3>问题修复</h3>
+        <ul>
+        <li>修复同时启动多个 Codex Bar 实例时，旧菜单栏图标可能保留但点击无响应的问题。</li>
         </ul>
         <h3>What&#x27;s New</h3>
         <ul>
-        <li><strong>Local token usage</strong>: View token usage for today, the last 7 days, or the last 30 days, including per-model input, cached input, output, and reasoning totals. All analysis stays on your Mac and does not read or upload conversation content.</li>
-        <li><strong>Cost estimates</strong>: See API-equivalent costs based on official token prices in both the main panel and menu popover. Models without a reliable price are clearly marked as unpriced and excluded from the total.</li>
-        <li><strong>CNY and USD display</strong>: Switch costs between CNY and USD, refresh the exchange rate manually, or let Codex Bar save the latest available rate automatically at 08:00 local time each day. English systems default to USD on first use.</li>
+        <li><strong>Quota reset countdowns</strong>: Five-hour and weekly quota cards now show exactly how long remains until the next reset, so you no longer need to calculate it from the reset date.</li>
         </ul>
         <h3>Improvements</h3>
         <ul>
-        <li><strong>Clearer usage overview</strong>: Period controls, model-level cost details, and a compact menu-bar cost card bring quota and token usage into one view.</li>
+        <li><strong>Focused number animations</strong>: Quota percentages, total token usage, and estimated costs now use an odometer-style transition when they first appear or change. Supporting values use a lighter transition to keep the interface calm.</li>
+        <li><strong>Cleaner menu-bar usage</strong>: The five-hour quota is shown as a percentage, while the weekly value keeps its “W” label, making the combined display more compact and easier to scan.</li>
+        <li><strong>More resilient card layout</strong>: Improved spacing between quota titles and countdowns so labels such as “5 Hours” remain readable in narrow cards.</li>
+        </ul>
+        <h3>Bug Fixes</h3>
+        <ul>
+        <li>Fixed an issue where launching multiple Codex Bar instances could leave an unresponsive menu-bar icon behind.</li>
         </ul>
       ]]></description>
       <enclosure
-        url="https://github.com/hnwangjy/codex-bar/releases/download/v0.0.5/Codex-Bar-0.0.5.dmg"
-        sparkle:edSignature="8iLaz0oYoV5cBznQZ8O3wsJ4NsN9NGzJy1HreYuU88wrfZLCRgeD3xMudNoX4LS5UxO9tC4CaFN+zzRXmtW7DQ=="
-        length="4618389"
+        url="https://github.com/hnwangjy/codex-bar/releases/download/v0.0.6/Codex-Bar-0.0.6.dmg"
+        sparkle:edSignature="DrA7F5E0PGrgyo4Covz115KThjj3f+/hOuizz5t1/Tp3FGv9egmG1UbJpDRLBNJdxWWK1h2Nc0gB8+haG3ThDA=="
+        length="4560478"
         type="application/octet-stream" />
     </item>
   </channel>

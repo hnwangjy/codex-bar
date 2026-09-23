@@ -11,6 +11,24 @@ import Testing
 
 struct codex_barTests {
 
+    @Test func resetCountdownFormatsLongAndShortDurations() {
+        let now = Date(timeIntervalSince1970: 2_000_000)
+
+        #expect(ResetCountdownFormatter.text(
+            until: now.addingTimeInterval(2 * 86_400 + 3 * 3_600 + 42),
+            now: now
+        ) == L10n.format("还有 %@", L10n.format("%d天 %d小时", 2, 3)))
+        #expect(ResetCountdownFormatter.text(
+            until: now.addingTimeInterval(90),
+            now: now
+        ) == L10n.format("还有 %@", L10n.format("%d分钟", 2)))
+    }
+
+    @Test func resetCountdownNeverShowsNegativeTime() {
+        let now = Date(timeIntervalSince1970: 2_000_000)
+        #expect(ResetCountdownFormatter.text(until: now.addingTimeInterval(-1), now: now) == L10n.text("即将重置"))
+    }
+
     @Test @MainActor func englishDefaultsToUSDUnlessUserSavedAChoice() {
         #expect(UsageStore.defaultCostDisplayCurrency(
             savedValue: nil,
@@ -52,7 +70,7 @@ struct codex_barTests {
         store.showWeeklyInMenuBar = true
 
         #expect(store.menuBarTitle == [
-            L10n.format("5h %d%%", 62),
+            L10n.format("%d%%", 62),
             L10n.format("W %d%%", 39)
         ].joined(separator: " · "))
     }
@@ -77,7 +95,7 @@ struct codex_barTests {
             showFiveHour: true,
             showWeekly: true
         ) == [
-            L10n.format("5h %d%%", 84),
+            L10n.format("%d%%", 84),
             L10n.format("W %d%%", 98)
         ].joined(separator: " · "))
     }

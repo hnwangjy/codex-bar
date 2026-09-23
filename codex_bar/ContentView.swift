@@ -129,10 +129,15 @@ private struct CompactCostRow: View {
                 .background(.tint.opacity(0.1), in: RoundedRectangle(cornerRadius: 9, style: .continuous))
             VStack(alignment: .leading, spacing: 2) {
                 Text(L10n.text("估算费用")).font(.callout.weight(.medium))
-                Text("\(period) · \(tokens)").font(.caption2).foregroundStyle(.secondary)
+                HStack(spacing: 3) {
+                    Text("\(period) ·")
+                    RollingNumberText(tokens)
+                }
+                .font(.caption2)
+                .foregroundStyle(.secondary)
             }
             Spacer()
-            Text(amount)
+            RollingNumberText(amount)
                 .font(.system(size: 17, weight: .semibold, design: .rounded).monospacedDigit())
         }
         .padding(.horizontal, 12).frame(height: 54)
@@ -153,10 +158,20 @@ private struct UsageCard: View {
                 Circle().stroke(tint.opacity(0.14), lineWidth: 5)
                 Circle().trim(from: 0, to: CGFloat((window.remainingPercent ?? 0) / 100))
                     .stroke(tint, style: StrokeStyle(lineWidth: 5, lineCap: .round)).rotationEffect(.degrees(-90))
+                    .animation(.easeInOut(duration: 0.22), value: window.remainingPercent)
                 Image(systemName: symbol).font(.system(size: 12, weight: .semibold)).foregroundStyle(tint)
             }.frame(width: 42, height: 42)
             VStack(alignment: .leading, spacing: 4) {
-                Text(title).font(.subheadline.weight(.medium))
+                HStack(alignment: .firstTextBaseline, spacing: 8) {
+                    Text(title)
+                        .font(.subheadline.weight(.medium))
+                        .lineLimit(1)
+                        .fixedSize(horizontal: true, vertical: false)
+                        .layoutPriority(1)
+                    if let resetAt = window.resetAt {
+                        ResetCountdownText(resetAt: resetAt)
+                    }
+                }
                 if let resetAt = window.resetAt {
                     Text(L10n.format("重置时间：%@", resetAt.formatted(date: .abbreviated, time: .shortened)))
                         .font(.caption2).foregroundStyle(.secondary)
@@ -164,8 +179,11 @@ private struct UsageCard: View {
             }
             Spacer()
             if let percent = window.remainingPercent {
-                (Text("\(Int(percent.rounded()))").font(.system(size: 24, weight: .semibold, design: .rounded).monospacedDigit())
-                 + Text("%").font(.caption.weight(.semibold)).foregroundColor(.secondary))
+                HStack(alignment: .firstTextBaseline, spacing: 1) {
+                    RollingNumberText("\(Int(percent.rounded()))")
+                        .font(.system(size: 24, weight: .semibold, design: .rounded).monospacedDigit())
+                    Text("%").font(.caption.weight(.semibold)).foregroundColor(.secondary)
+                }
             } else { Text("—").font(.title2).foregroundStyle(.tertiary) }
         }
         .padding(13)

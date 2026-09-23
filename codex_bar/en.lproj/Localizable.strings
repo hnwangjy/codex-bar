@@ -39,6 +39,7 @@
 "每 30 分钟" = "Every 30 Minutes";
 "菜单栏显示" = "Menu Bar Display";
 "5h %d%%" = "5h %d%%";
+"%d%%" = "%d%%";
 "W %d%%" = "W %d%%";
 "额度重置提醒" = "Usage Reset Notifications";
 "5 小时额度重置" = "5-hour Usage Reset";
@@ -103,3 +104,8 @@
 "刷新当前汇率" = "Refresh Current Rate";
 "暂时无法获取最新汇率，请稍后重试。" = "Unable to fetch the latest exchange rate. Try again later.";
 "汇率更新于 %@ · 数据日期 %@" = "Rate updated %@ · Data date %@";
+"还有 %@" = "%@ left";
+"即将重置" = "Resetting soon";
+"%d天 %d小时" = "%dd %dh";
+"%d小时 %d分钟" = "%dh %dm";
+"%d分钟" = "%dm";
