@@ -6,46 +6,54 @@
     <description>Codex Bar stable releases</description>
     <language>en</language>
     <item>
-      <title>Codex Bar 0.0.6</title>
-      <link>https://github.com/hnwangjy/codex-bar/releases/tag/v0.0.6</link>
-      <sparkle:version>6</sparkle:version>
-      <sparkle:shortVersionString>0.0.6</sparkle:shortVersionString>
+      <title>Codex Bar 0.0.8</title>
+      <link>https://github.com/hnwangjy/codex-bar/releases/tag/v0.0.8</link>
+      <sparkle:version>8</sparkle:version>
+      <sparkle:shortVersionString>0.0.8</sparkle:shortVersionString>
       <sparkle:minimumSystemVersion>13.0</sparkle:minimumSystemVersion>
-      <pubDate>Wed, 23 Sep 2026 01:06:50 +0000</pubDate>
+      <pubDate>Thu, 01 Oct 2026 12:04:58 +0000</pubDate>
       <description><![CDATA[
         <h3>新功能</h3>
         <ul>
-        <li><strong>额度重置倒计时</strong>：5 小时和每周额度现在会直接显示距离下次重置还有多久，查看额度时不再需要自行换算日期。</li>
+        <li><strong>通知权限快捷引导</strong>：当系统通知未授权或已关闭时，可从设置页直接前往 macOS 通知设置完成授权。</li>
         </ul>
         <h3>改进</h3>
         <ul>
-        <li><strong>关键数字滚动效果</strong>：额度百分比、总 Token 用量和费用金额在首次加载或发生变化时，会以更自然的里程表动画呈现；其他辅助数据保持轻量过渡，减少视觉疲劳。</li>
-        <li><strong>更简洁的菜单栏信息</strong>：5 小时额度只显示百分比，每周额度保留“周”标识，让双额度展示更紧凑、更容易扫读。</li>
-        <li><strong>更稳定的卡片布局</strong>：优化额度标题和倒计时的空间分配，避免“5 小时”等标题在较窄卡片中被截断。</li>
+        <li><strong>支持最新模型计价</strong>：新增 GPT-6.1 Sol、GPT-6 Sol、GPT-6 Luna 等模型的 Token 费用估算，并正确计算 GPT-6.1 Sol 更低的缓存输入价格。</li>
+        <li><strong>权限状态自动同步</strong>：从系统设置返回后会立即重新检查通知权限，授权成功后自动隐藏引导入口。</li>
+        <li><strong>中英文界面补全</strong>：通知权限引导会跟随系统语言显示中文或英文。</li>
         </ul>
         <h3>问题修复</h3>
         <ul>
-        <li>修复同时启动多个 Codex Bar 实例时，旧菜单栏图标可能保留但点击无响应的问题。</li>
+        <li>修复打开详细面板时，首次额度请求尚未开始便被误判为断开连接的问题。现在会正确区分“正在连接”与真实连接失败。</li>
+        </ul>
+        <h3>安装提示</h3>
+        <ul>
+        <li>此版本已使用 Developer ID 签名，但因开发者协议状态暂未完成 Apple 公证。若 macOS 阻止首次打开，请在“系统设置 → 隐私与安全性”中选择“仍要打开”。</li>
         </ul>
         <h3>What&#x27;s New</h3>
         <ul>
-        <li><strong>Quota reset countdowns</strong>: Five-hour and weekly quota cards now show exactly how long remains until the next reset, so you no longer need to calculate it from the reset date.</li>
+        <li><strong>Notification permission shortcut</strong>: Open the relevant macOS notification settings directly when notifications are not authorized or have been disabled.</li>
         </ul>
         <h3>Improvements</h3>
         <ul>
-        <li><strong>Focused number animations</strong>: Quota percentages, total token usage, and estimated costs now use an odometer-style transition when they first appear or change. Supporting values use a lighter transition to keep the interface calm.</li>
-        <li><strong>Cleaner menu-bar usage</strong>: The five-hour quota is shown as a percentage, while the weekly value keeps its “W” label, making the combined display more compact and easier to scan.</li>
-        <li><strong>More resilient card layout</strong>: Improved spacing between quota titles and countdowns so labels such as “5 Hours” remain readable in narrow cards.</li>
+        <li><strong>Latest model pricing</strong>: Added token-cost estimates for GPT-6.1 Sol, GPT-6 Sol, GPT-6 Luna, and other newly listed models, including GPT-6.1 Sol&#x27;s lower cached-input rate.</li>
+        <li><strong>Automatic permission refresh</strong>: Notification authorization is checked again when you return from System Settings, and the guidance disappears automatically after access is granted.</li>
+        <li><strong>Localized guidance</strong>: Notification permission controls follow the system language in Chinese and English.</li>
         </ul>
         <h3>Bug Fixes</h3>
         <ul>
-        <li>Fixed an issue where launching multiple Codex Bar instances could leave an unresponsive menu-bar icon behind.</li>
+        <li>Fixed a false disconnected state that could appear before the initial quota request started. The app now distinguishes “Connecting” from an actual connection failure.</li>
+        </ul>
+        <h3>Installation Note</h3>
+        <ul>
+        <li>This build is Developer ID signed but not Apple-notarized because the developer agreement is currently inactive. If macOS blocks the first launch, allow it from System Settings → Privacy &amp; Security.</li>
         </ul>
       ]]></description>
       <enclosure
-        url="https://github.com/hnwangjy/codex-bar/releases/download/v0.0.6/Codex-Bar-0.0.6.dmg"
-        sparkle:edSignature="DrA7F5E0PGrgyo4Covz115KThjj3f+/hOuizz5t1/Tp3FGv9egmG1UbJpDRLBNJdxWWK1h2Nc0gB8+haG3ThDA=="
-        length="4560478"
+        url="https://github.com/hnwangjy/codex-bar/releases/download/v0.0.8/Codex-Bar-0.0.8.dmg"
+        sparkle:edSignature="+LgRWUpSEJz7G2c/SovelbcfsugKSBoZG3zcCsrfNfYPiIlGIgkn9t0GEMPmzgkpPVZm26hiUzLCMAfV62g4DA=="
+        length="4564828"
         type="application/octet-stream" />
     </item>
   </channel>
