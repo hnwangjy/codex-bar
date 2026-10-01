@@ -67,6 +67,10 @@ final class AppController: NSObject, NSApplicationDelegate, ObservableObject, NS
 
     func applicationShouldHandleReopen(_ sender: NSApplication, hasVisibleWindows flag: Bool) -> Bool { showPanel(); return true }
 
+    func applicationDidBecomeActive(_ notification: Notification) {
+        Task { await store.refreshNotificationAuthorization() }
+    }
+
     func showPanel(settings: Bool = false) {
         popover.performClose(nil)
         settingsSelected = settings
@@ -130,6 +134,16 @@ final class AppController: NSObject, NSApplicationDelegate, ObservableObject, NS
         NSWorkspace.shared.open(url)
     }
 
+    func openNotificationSettings() {
+        let bundleIdentifier = Bundle.main.bundleIdentifier ?? ""
+        let encodedIdentifier = bundleIdentifier.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? bundleIdentifier
+        let appSettings = URL(string: "x-apple.systempreferences:com.apple.Notifications-Settings.extension?id=\(encodedIdentifier)")
+        let notifications = URL(string: "x-apple.systempreferences:com.apple.Notifications-Settings.extension")
+
+        if let appSettings, NSWorkspace.shared.open(appSettings) { return }
+        if let notifications { NSWorkspace.shared.open(notifications) }
+    }
+
     func windowWillClose(_ notification: Notification) { guard installMenu() else { return }; menuEnabled = true }
 
     func userNotificationCenter(_ center: UNUserNotificationCenter, willPresent notification: UNNotification, withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void) { completionHandler([.banner, .sound]) }
@@ -178,11 +192,18 @@ struct ControlPanel: View {
 
     private var connectionBadge: some View {
         HStack(spacing: 6) {
-            if store.isLoading { ProgressView().controlSize(.mini) }
-            else { Circle().fill(store.usage != nil ? Color.green : Color.secondary).frame(width: 7, height: 7) }
-            Text(store.isLoading ? L10n.text("正在刷新…") : (store.usage != nil ? L10n.text("已连接 Codex") : L10n.text("等待连接")))
-                .font(.caption.weight(.medium))
+            if store.isLoading || store.isAwaitingInitialConnection {
+                ProgressView().controlSize(.mini)
+                Text(store.isLoading && store.usage != nil ? L10n.text("正在刷新…") : L10n.text("正在连接…"))
+            } else if store.usage != nil {
+                Circle().fill(Color.green).frame(width: 7, height: 7)
+                Text(L10n.text("已连接 Codex"))
+            } else {
+                Image(systemName: "exclamationmark.circle.fill").foregroundStyle(.orange)
+                Text(L10n.text("连接失败"))
+            }
         }.padding(.horizontal, 10).frame(height: 28).background(.quaternary.opacity(0.65), in: Capsule())
+            .font(.caption.weight(.medium))
     }
 
     private var overviewView: some View {
@@ -193,7 +214,7 @@ struct ControlPanel: View {
                         PanelQuotaCard(title: L10n.text("5 小时"), symbol: "clock", window: usage.fiveHour)
                         PanelQuotaCard(title: L10n.text("每周"), symbol: "calendar", window: usage.weekly)
                     }
-                } else if store.isLoading {
+                } else if store.isLoading || store.isAwaitingInitialConnection {
                     ProgressView("正在读取 Codex 额度…").frame(maxWidth: .infinity, minHeight: 180)
                 } else { emptyState }
                 TokenUsageCard(store: store)
@@ -292,6 +313,12 @@ struct ControlPanel: View {
                     HStack {
                         Text(L10n.format("系统通知：%@", store.notificationAuthorization)).font(.caption).foregroundStyle(.secondary)
                         Spacer()
+                        if store.notificationSettingsRequired {
+                            Button { controller.openNotificationSettings() } label: {
+                                Label("打开通知设置", systemImage: "gearshape")
+                            }
+                            .buttonStyle(.borderless)
+                        }
                         Button("发送测试提醒") { Task { await store.sendTestNotification() } }.buttonStyle(.borderless)
                     }
                 }

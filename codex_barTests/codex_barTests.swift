@@ -199,6 +199,30 @@ struct codex_barTests {
         #expect(abs(summary.estimatedUSD - 0.0048) < 0.000_001)
     }
 
+    @Test func priceCatalogIncludesLatestCodexModels() {
+        let sol61 = OpenAIPriceCatalog.pricing(for: "gpt-6.1-sol")
+        #expect(sol61?.inputPerMillion == 2)
+        #expect(sol61?.cachedInputPerMillion == 0.1)
+        #expect(sol61?.outputPerMillion == 10)
+
+        let sol = OpenAIPriceCatalog.pricing(for: "gpt-6-sol")
+        #expect(sol?.inputPerMillion == 2)
+        #expect(sol?.cachedInputPerMillion == 0.2)
+        #expect(sol?.outputPerMillion == 10)
+
+        let luna = OpenAIPriceCatalog.pricing(for: "gpt-6-luna-2026-09-29")
+        #expect(luna?.inputPerMillion == 0.1)
+        #expect(luna?.cachedInputPerMillion == 0.01)
+        #expect(luna?.outputPerMillion == 0.5)
+    }
+
+    @Test func specializedModelPricingTakesPrecedenceOverBaseModel() {
+        let law = OpenAIPriceCatalog.pricing(for: "gpt-6-astra-law")
+        #expect(law?.inputPerMillion == 12.5)
+        #expect(law?.cachedInputPerMillion == 1.25)
+        #expect(law?.outputPerMillion == 62.5)
+    }
+
     @Test func tokenScannerKeepsUnknownModelsUnpriced() async throws {
         let root = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
         try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)

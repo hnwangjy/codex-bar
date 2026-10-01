@@ -1,6 +1,11 @@
 import Foundation
 import UserNotifications
 
+struct NotificationAuthorizationSnapshot: Equatable, Sendable {
+    let description: String
+    let requiresSystemSettings: Bool
+}
+
 @MainActor
 final class ResetNotificationService {
     private let center = UNUserNotificationCenter.current()
@@ -9,12 +14,28 @@ final class ResetNotificationService {
         _ = try? await center.requestAuthorization(options: [.alert, .sound])
     }
 
-    func authorizationDescription() async -> String {
+    func authorizationSnapshot() async -> NotificationAuthorizationSnapshot {
         switch await center.notificationSettings().authorizationStatus {
-        case .authorized, .provisional, .ephemeral: return L10n.text("已允许")
-        case .denied: return L10n.text("已关闭，请在系统设置中允许")
-        case .notDetermined: return L10n.text("尚未授权")
-        @unknown default: return L10n.text("状态未知")
+        case .authorized, .provisional, .ephemeral:
+            return NotificationAuthorizationSnapshot(
+                description: L10n.text("已允许"),
+                requiresSystemSettings: false
+            )
+        case .denied:
+            return NotificationAuthorizationSnapshot(
+                description: L10n.text("已关闭，请在系统设置中允许"),
+                requiresSystemSettings: true
+            )
+        case .notDetermined:
+            return NotificationAuthorizationSnapshot(
+                description: L10n.text("尚未授权"),
+                requiresSystemSettings: true
+            )
+        @unknown default:
+            return NotificationAuthorizationSnapshot(
+                description: L10n.text("状态未知"),
+                requiresSystemSettings: true
+            )
         }
     }
 

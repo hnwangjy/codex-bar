@@ -87,10 +87,17 @@ nonisolated struct ModelPricing: Sendable, Equatable {
 }
 
 nonisolated enum OpenAIPriceCatalog {
-    // OpenAI ChatGPT Rate Card, checked 2026-09-17. Values are USD per 1M tokens.
+    // OpenAI ChatGPT Work and Codex pricing, checked 2026-10-01. Values are USD per 1M tokens.
     static func pricing(for rawModel: String) -> ModelPricing? {
         let model = rawModel.lowercased()
+        if model.hasPrefix("gpt-6-astra-law") { return .init(inputPerMillion: 12.5, cachedInputPerMillion: 1.25, outputPerMillion: 62.5) }
         if model.hasPrefix("gpt-6-astra") { return .init(inputPerMillion: 10, cachedInputPerMillion: 1, outputPerMillion: 50) }
+        if model.hasPrefix("gpt-6.1-sol") { return .init(inputPerMillion: 2, cachedInputPerMillion: 0.1, outputPerMillion: 10) }
+        if model.hasPrefix("gpt-6-sol") { return .init(inputPerMillion: 2, cachedInputPerMillion: 0.2, outputPerMillion: 10) }
+        if model.hasPrefix("gpt-6-luna") { return .init(inputPerMillion: 0.1, cachedInputPerMillion: 0.01, outputPerMillion: 0.5) }
+        if model.hasPrefix("gpt-rosalind-research") { return .init(inputPerMillion: 5, cachedInputPerMillion: 0.5, outputPerMillion: 25) }
+        if model.hasPrefix("daybreak-red") { return .init(inputPerMillion: 12.5, cachedInputPerMillion: 1.25, outputPerMillion: 75) }
+        if model.hasPrefix("daybreak-blue") { return .init(inputPerMillion: 4, cachedInputPerMillion: 0.4, outputPerMillion: 20) }
         if model.hasPrefix("gpt-5.6-sol") { return .init(inputPerMillion: 4, cachedInputPerMillion: 0.4, outputPerMillion: 20) }
         if model.hasPrefix("gpt-5.6-terra") { return .init(inputPerMillion: 2, cachedInputPerMillion: 0.2, outputPerMillion: 12) }
         if model.hasPrefix("gpt-5.6-luna") { return .init(inputPerMillion: 0.2, cachedInputPerMillion: 0.02, outputPerMillion: 1.2) }
@@ -98,6 +105,7 @@ nonisolated enum OpenAIPriceCatalog {
         if model.hasPrefix("gpt-5.4-mini") { return .init(inputPerMillion: 0.75, cachedInputPerMillion: 0.075, outputPerMillion: 4.5) }
         if model.hasPrefix("gpt-5.4") { return .init(inputPerMillion: 2.5, cachedInputPerMillion: 0.25, outputPerMillion: 15) }
         if model.hasPrefix("gpt-5.3-codex") { return .init(inputPerMillion: 1.75, cachedInputPerMillion: 0.175, outputPerMillion: 14) }
+        if model.hasPrefix("gpt-5.3") { return .init(inputPerMillion: 1.75, cachedInputPerMillion: 0.175, outputPerMillion: 14) }
         if model.hasPrefix("gpt-5.2") { return .init(inputPerMillion: 1.75, cachedInputPerMillion: 0.175, outputPerMillion: 14) }
         return nil
     }

@@ -9,6 +9,7 @@ final class UsageStore: ObservableObject {
     @Published private(set) var errorRequiresLogin = false
     @Published private(set) var updatedAt: Date?
     @Published private(set) var notificationAuthorization = L10n.text("正在检查…")
+    @Published private(set) var notificationSettingsRequired = false
     @Published private(set) var tokenUsage: TokenUsageSummary?
     @Published private(set) var tokenUsageError: String?
     @Published private(set) var isLoadingTokenUsage = false
@@ -97,6 +98,10 @@ final class UsageStore: ObservableObject {
         )
     }
 
+    var isAwaitingInitialConnection: Bool {
+        usage == nil && errorMessage == nil
+    }
+
     static func menuBarTitle(
         usage: CodexUsage?,
         showFiveHour: Bool,
@@ -130,13 +135,13 @@ final class UsageStore: ObservableObject {
     func loadIfNeeded() async {
         guard !hasLoaded else { return }
         hasLoaded = true
+        scheduleExchangeRateRefresh()
+        await refresh()
         if notifyFiveHourReset || notifyWeeklyReset {
             await notifications.requestAuthorization()
         }
-        notificationAuthorization = await notifications.authorizationDescription()
-        scheduleExchangeRateRefresh()
+        await refreshNotificationAuthorization()
         await refreshExchangeRateIfNeeded()
-        await refresh()
     }
 
     private static func initialCostDisplayCurrency() -> CostDisplayCurrency {
@@ -208,12 +213,18 @@ final class UsageStore: ObservableObject {
 
     func sendTestNotification() async {
         await notifications.sendTest()
-        notificationAuthorization = await notifications.authorizationDescription()
+        await refreshNotificationAuthorization()
     }
 
     private func updateNotificationAuthorization(requestIfNeeded: Bool) async {
         if requestIfNeeded { await notifications.requestAuthorization() }
-        notificationAuthorization = await notifications.authorizationDescription()
+        await refreshNotificationAuthorization()
+    }
+
+    func refreshNotificationAuthorization() async {
+        let snapshot = await notifications.authorizationSnapshot()
+        notificationAuthorization = snapshot.description
+        notificationSettingsRequired = snapshot.requiresSystemSettings
     }
 
     func refresh() async {
