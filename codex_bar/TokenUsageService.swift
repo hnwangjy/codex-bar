@@ -93,6 +93,11 @@ nonisolated enum OpenAIPriceCatalog {
         if model.hasPrefix("gpt-6-astra-law") { return .init(inputPerMillion: 12.5, cachedInputPerMillion: 1.25, outputPerMillion: 62.5) }
         if model.hasPrefix("gpt-6-astra") { return .init(inputPerMillion: 10, cachedInputPerMillion: 1, outputPerMillion: 50) }
         if model.hasPrefix("gpt-6.1-sol") { return .init(inputPerMillion: 2, cachedInputPerMillion: 0.1, outputPerMillion: 10) }
+        // Standard short-context USD rates from OpenAI API Pricing (2026-11-06).
+        if model.hasPrefix("gpt-6.1-terra") { return .init(inputPerMillion: 1, cachedInputPerMillion: 0.05, outputPerMillion: 5) }
+        if model.hasPrefix("gpt-6-cyber") { return .init(inputPerMillion: 20, cachedInputPerMillion: 2, outputPerMillion: 100) }
+        if model.hasPrefix("gpt-6-rosalind") { return .init(inputPerMillion: 15, cachedInputPerMillion: 1.5, outputPerMillion: 75) }
+        if model.hasPrefix("gpt-rosalind-discovery") { return .init(inputPerMillion: 5, cachedInputPerMillion: 0.5, outputPerMillion: 25) }
         if model.hasPrefix("gpt-6-sol") { return .init(inputPerMillion: 2, cachedInputPerMillion: 0.2, outputPerMillion: 10) }
         if model.hasPrefix("gpt-6-luna") { return .init(inputPerMillion: 0.1, cachedInputPerMillion: 0.01, outputPerMillion: 0.5) }
         if model.hasPrefix("gpt-rosalind-research") { return .init(inputPerMillion: 5, cachedInputPerMillion: 0.5, outputPerMillion: 25) }
