@@ -90,6 +90,9 @@ nonisolated enum OpenAIPriceCatalog {
     // OpenAI ChatGPT Work and Codex pricing, checked 2026-10-01. Values are USD per 1M tokens.
     static func pricing(for rawModel: String) -> ModelPricing? {
         let model = rawModel.lowercased()
+        // Standard USD rates checked 2026-11-23: https://learn.chatgpt.com/docs/pricing
+        if model.hasPrefix("gpt-6.2-astra") { return .init(inputPerMillion: 8, cachedInputPerMillion: 0.4, outputPerMillion: 40) }
+        if model.hasPrefix("gpt-6.2-sol") { return .init(inputPerMillion: 2, cachedInputPerMillion: 0.1, outputPerMillion: 10) }
         if model.hasPrefix("gpt-6-astra-law") { return .init(inputPerMillion: 12.5, cachedInputPerMillion: 1.25, outputPerMillion: 62.5) }
         if model.hasPrefix("gpt-6-astra") { return .init(inputPerMillion: 10, cachedInputPerMillion: 1, outputPerMillion: 50) }
         if model.hasPrefix("gpt-6.1-sol") { return .init(inputPerMillion: 2, cachedInputPerMillion: 0.1, outputPerMillion: 10) }

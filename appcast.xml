@@ -6,16 +6,16 @@
     <description>Codex Bar stable releases</description>
     <language>en</language>
     <item>
-      <title>Codex Bar 0.0.9</title>
-      <link>https://github.com/hnwangjy/codex-bar/releases/tag/v0.0.9</link>
-      <sparkle:version>9</sparkle:version>
-      <sparkle:shortVersionString>0.0.9</sparkle:shortVersionString>
+      <title>Codex Bar 0.0.10</title>
+      <link>https://github.com/hnwangjy/codex-bar/releases/tag/v0.0.10</link>
+      <sparkle:version>10</sparkle:version>
+      <sparkle:shortVersionString>0.0.10</sparkle:shortVersionString>
       <sparkle:minimumSystemVersion>13.0</sparkle:minimumSystemVersion>
-      <pubDate>Fri, 06 Nov 2026 08:25:53 +0000</pubDate>
+      <pubDate>Mon, 23 Nov 2026 06:10:00 +0000</pubDate>
       <description><![CDATA[
         <h3>改进</h3>
         <ul>
-        <li>支持 GPT-6.1 Terra、GPT-6 Cyber、GPT-6 Rosalind 和 GPT-Rosalind Discovery 的 Token 费用估算。</li>
+        <li>新增 GPT-6.2 Sol 和 GPT-6.2 Astra 的 Token 费用估算，按官方 Standard 单价分别计算输入、缓存输入和输出费用。</li>
         </ul>
         <h3>安装提示</h3>
         <ul>
@@ -23,7 +23,7 @@
         </ul>
         <h3>Improvements</h3>
         <ul>
-        <li>Added token cost estimates for GPT-6.1 Terra, GPT-6 Cyber, GPT-6 Rosalind, and GPT-Rosalind Discovery.</li>
+        <li>Added token cost estimates for GPT-6.2 Sol and GPT-6.2 Astra using official Standard input, cached-input, and output rates.</li>
         </ul>
         <h3>Installation</h3>
         <ul>
@@ -31,9 +31,9 @@
         </ul>
       ]]></description>
       <enclosure
-        url="https://github.com/hnwangjy/codex-bar/releases/download/v0.0.9/Codex-Bar-0.0.9.dmg"
-        sparkle:edSignature="wZnK0UmtSDEGGkYKdwWmYrllZyldXpRFBl26wT6iScQGhiBPwiLzonisQcleCvKaXpWAhWW1wG/h1d6tiidJDA=="
-        length="4564055"
+        url="https://github.com/hnwangjy/codex-bar/releases/download/v0.0.10/Codex-Bar-0.0.10.dmg"
+        sparkle:edSignature="kUPQqLHF1V6bZuj1REy6RGnaXNzNdiB+aQPjgih9NdfiCa0IugcxXdtlQvuqSXQb0h0wxU9Psb3+XIe5rCMtCw=="
+        length="4563941"
         type="application/octet-stream" />
     </item>
   </channel>

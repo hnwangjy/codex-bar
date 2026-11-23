@@ -200,6 +200,8 @@ struct codex_barTests {
     }
 
     @Test func priceCatalogIncludesLatestCodexModels() {
+        #expect(OpenAIPriceCatalog.pricing(for: "gpt-6.2-sol") == ModelPricing(inputPerMillion: 2, cachedInputPerMillion: 0.1, outputPerMillion: 10))
+        #expect(OpenAIPriceCatalog.pricing(for: "GPT-6.2-ASTRA-2026-11-23") == ModelPricing(inputPerMillion: 8, cachedInputPerMillion: 0.4, outputPerMillion: 40))
         let sol61 = OpenAIPriceCatalog.pricing(for: "gpt-6.1-sol")
         #expect(sol61?.inputPerMillion == 2)
         #expect(sol61?.cachedInputPerMillion == 0.1)
